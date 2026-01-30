@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ProyectosService } from './proyectos.service';
 import { CreateProyectoDto } from './dto/create-proyecto.dto';
 import { UpdateProyectoDto } from './dto/update-proyecto.dto';
+import { Area } from '../areas/entities/area.entity';
 
 @Controller('proyectos')
 export class ProyectosController {
@@ -18,17 +19,17 @@ export class ProyectosController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.proyectosService.findOne(+id);
+  findOne(@Param('id') id: number) {
+    return this.proyectosService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProyectoDto: UpdateProyectoDto) {
-    return this.proyectosService.update(+id, updateProyectoDto);
+  update(@Param('id') id: number, @Body() updateProyectoDto: UpdateProyectoDto) {
+    return this.proyectosService.update(id, updateProyectoDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.proyectosService.remove(+id);
+  remove(@Param('id') id: number) {
+    return this.proyectosService.remove(id);
   }
 }

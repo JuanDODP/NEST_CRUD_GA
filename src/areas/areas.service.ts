@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class AreasService {
   private readonly logger = new Logger('AreasService');
+  
   constructor(
     @InjectRepository(Area)
     private readonly areasRepository: Repository<Area>,
