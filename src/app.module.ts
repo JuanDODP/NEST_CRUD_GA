@@ -5,6 +5,8 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { AreasModule } from './areas/areas.module';
+import { ProyectosModule } from './proyectos/proyectos.module';
+import { AsignacionesModule } from './asignaciones/asignaciones.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { AreasModule } from './areas/areas.module';
     }),
     AuthModule,
     AreasModule,
+    ProyectosModule,
+    AsignacionesModule,
   
   ],
   controllers: [AppController],
