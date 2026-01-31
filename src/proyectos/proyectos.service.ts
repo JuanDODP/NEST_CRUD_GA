@@ -93,14 +93,20 @@ export class ProyectosService {
     if (!proyecto) {
       throw new NotFoundException(`Proyecto with id ${id} not found`);
     }
-     try {
-       await this.proyectosRepository.remove(proyecto.proyecto);
-       return {
-         message: `Proyecto with id ${id} removed successfully`
-       };
-     } catch (error) {
-       this.handleDBExceptions(error);
-     }
+    try {
+      await this.proyectosRepository.remove(proyecto.proyecto);
+      return {
+        message: `Proyecto with id ${id} removed successfully`
+      };
+    } catch (error) {
+      // El código '23503' es específicamente para violación de llave foránea
+      if (error.code === '23503') {
+        throw new BadRequestException(
+          `No se puede eliminar el proyecto porque se ocupa en asignaciones. Elimina o mueve las asignaciones  primero.`
+        );
+      }
+      this.handleDBExceptions(error); // Tu manejador genérico
+    }
   }
   private handleDBExceptions(error: any) {
     if (error.code === '23505') {

@@ -150,7 +150,7 @@ async update(id: number, updateAsignacioneDto: UpdateAsignacioneDto) {
 }
   private handleDBExceptions(error: any) {
     if (error.code === '23505') {
-      throw new BadRequestException(`Project exists ${error.detail}`);
+      throw new BadRequestException(`Asignacion exists ${error.detail}`);
     }
     this.logger.error(error);
     throw new InternalServerErrorException('Could not create project');

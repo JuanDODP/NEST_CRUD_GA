@@ -97,8 +97,14 @@ export class AreasService {
        message: `Area with id "${id}" has been removed`
      };
    } catch (error) {
-     this.handleDBExceptions(error);
-   }
+    // El código '23503' es específicamente para violación de llave foránea
+    if (error.code === '23503') {
+      throw new BadRequestException(
+        `No se puede eliminar el área porque tiene proyectos asignados. Elimina o mueve los proyectos primero.`
+      );
+    }
+    this.handleDBExceptions(error); // Tu manejador genérico
+  }
   }
 
   private handleDBExceptions(error: any) {
