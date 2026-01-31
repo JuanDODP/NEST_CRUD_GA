@@ -3,11 +3,12 @@ import { AreasService } from './areas.service';
 import { AreasController } from './areas.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Area } from './entities/area.entity';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   controllers: [AreasController],
   providers: [AreasService],
-  imports: [ TypeOrmModule.forFeature([Area])],
+  imports: [ TypeOrmModule.forFeature([Area]), AuthModule],
   exports: [AreasService, TypeOrmModule],
 })
 export class AreasModule {}

@@ -2,12 +2,14 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { AsignacionesService } from './asignaciones.service';
 import { CreateAsignacioneDto } from './dto/create-asignacione.dto';
 import { UpdateAsignacioneDto } from './dto/update-asignacione.dto';
+import { Auth } from 'src/auth/decorators';
 
 @Controller('asignaciones')
 export class AsignacionesController {
   constructor(private readonly asignacionesService: AsignacionesService) { }
 
   @Post()
+  @Auth()
   create(@Body() createAsignacioneDto: CreateAsignacioneDto) {
     return this.asignacionesService.create(createAsignacioneDto);
   }
@@ -22,12 +24,15 @@ export class AsignacionesController {
     return this.asignacionesService.findOne(id);
   }
 
+
   @Patch(':id')
+  @Auth()
   update(@Param('id') id: number, @Body() updateAsignacioneDto: UpdateAsignacioneDto) {
     return this.asignacionesService.update(id, updateAsignacioneDto);
   }
 
   @Delete(':id')
+  @Auth()
   remove(@Param('id') id: number) {
     return this.asignacionesService.remove(id);
   }

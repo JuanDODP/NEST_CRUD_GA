@@ -54,7 +54,7 @@ export class AsignacionesService {
 
   async findAll() {
     try {
-      const asignaciones = await this.AsignacionesRepository.find({ relations: ['proyecto', 'usuario'] })
+      const asignaciones = await this.AsignacionesRepository.find({ relations: [ 'usuario', 'proyecto', 'proyecto.area',] })
       return {
         ok: true,
         asignaciones
@@ -65,17 +65,18 @@ export class AsignacionesService {
   }
 
   async findOne(id: number) {
-    try {
-      const asignasiones = await this.AsignacionesRepository.findOne({
-        where: { id },
-        relations: ['proyecto', 'usuario']
-      })
-      return {
-        ok: true,
-        asignasiones
-      }
-    } catch (error) {
-      this.handleDBExceptions(error)
+
+    const asignasiones = await this.AsignacionesRepository.findOne({
+      where: { id },
+      relations: [ 'usuario', 'proyecto', 'proyecto.area',]
+    })
+    if(!asignasiones){
+      throw new NotFoundException(`asignacion with id ${id} not founf`)
+    }
+    
+    return {
+      ok: true,
+      asignasiones
     }
   }
 
