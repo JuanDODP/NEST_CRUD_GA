@@ -1,3 +1,4 @@
+import { Asignacion } from "src/asignaciones/entities/asignacione.entity";
 import {
     BeforeInsert,
     BeforeUpdate,
@@ -5,6 +6,7 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     CreateDateColumn,
+    OneToMany,
 } from "typeorm";
 
 @Entity('users')
@@ -32,6 +34,10 @@ export class User {
     // ==========================================
     // Hooks para mantener la integridad del correo
     // ==========================================
+
+    // Un usuario puede estar en muchas asignaciones (muchos proyectos)
+  @OneToMany(() => Asignacion, (asignacion) => asignacion.usuario)
+  asignaciones: Asignacion[];
     @BeforeInsert()
     normalizeEmail() {
         this.email = this.email.toLowerCase().trim();

@@ -5,7 +5,7 @@ import { UpdateAsignacioneDto } from './dto/update-asignacione.dto';
 
 @Controller('asignaciones')
 export class AsignacionesController {
-  constructor(private readonly asignacionesService: AsignacionesService) {}
+  constructor(private readonly asignacionesService: AsignacionesService) { }
 
   @Post()
   create(@Body() createAsignacioneDto: CreateAsignacioneDto) {
@@ -18,17 +18,17 @@ export class AsignacionesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.asignacionesService.findOne(+id);
+  findOne(@Param('id') id: number) {
+    return this.asignacionesService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAsignacioneDto: UpdateAsignacioneDto) {
-    return this.asignacionesService.update(+id, updateAsignacioneDto);
+  update(@Param('id') id: number, @Body() updateAsignacioneDto: UpdateAsignacioneDto) {
+    return this.asignacionesService.update(id, updateAsignacioneDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.asignacionesService.remove(+id);
+  remove(@Param('id') id: number) {
+    return this.asignacionesService.remove(id);
   }
 }

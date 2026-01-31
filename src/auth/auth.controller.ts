@@ -17,4 +17,14 @@ export class AuthController {
   login(@Body() loginAuthDto: LoginUserDto) {
     return this.authService.login(loginAuthDto);
   }
+  @Get('users')
+  findAll(){
+    return this.authService.findAll( )
+  }
+  @Get('users/:id')
+  findOne(
+    @Param('id') id: number) {
+    return this.authService.findOne(id);
+  }
+
 }
