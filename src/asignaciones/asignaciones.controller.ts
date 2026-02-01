@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { AsignacionesService } from './asignaciones.service';
 import { CreateAsignacioneDto } from './dto/create-asignacione.dto';
 import { UpdateAsignacioneDto } from './dto/update-asignacione.dto';
@@ -20,20 +20,20 @@ export class AsignacionesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.asignacionesService.findOne(id);
   }
 
 
   @Patch(':id')
   @Auth()
-  update(@Param('id') id: number, @Body() updateAsignacioneDto: UpdateAsignacioneDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateAsignacioneDto: UpdateAsignacioneDto) {
     return this.asignacionesService.update(id, updateAsignacioneDto);
   }
 
   @Delete(':id')
   @Auth()
-  remove(@Param('id') id: number) {
+  remove(@Param('id',ParseIntPipe) id: number) {
     return this.asignacionesService.remove(id);
   }
 }

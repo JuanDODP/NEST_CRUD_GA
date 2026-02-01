@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { ProyectosService } from './proyectos.service';
 import { CreateProyectoDto } from './dto/create-proyecto.dto';
 import { UpdateProyectoDto } from './dto/update-proyecto.dto';
@@ -20,21 +20,21 @@ export class ProyectosController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.proyectosService.findOne(id);
   }
 
   @Patch(':id')
   @Auth()
 
-  update(@Param('id') id: number, @Body() updateProyectoDto: UpdateProyectoDto) {
+  update(@Param('id',ParseIntPipe) id: number, @Body() updateProyectoDto: UpdateProyectoDto) {
     return this.proyectosService.update(id, updateProyectoDto);
   }
 
   @Delete(':id')
   @Auth()
 
-  remove(@Param('id') id: number) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.proyectosService.remove(id);
   }
 }

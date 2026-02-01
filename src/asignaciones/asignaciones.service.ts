@@ -53,8 +53,17 @@ export class AsignacionesService {
   }
 
   async findAll() {
+
     try {
-      const asignaciones = await this.AsignacionesRepository.find({ relations: [ 'usuario', 'proyecto', 'proyecto.area',] })
+      const asignaciones = await this.AsignacionesRepository.find({
+        relations: ['usuario', 'proyecto', 'proyecto.area',],
+        where: {
+          usuario: {
+            isActive: true
+          }
+        }
+
+      })
       return {
         ok: true,
         asignaciones
@@ -68,87 +77,87 @@ export class AsignacionesService {
 
     const asignasiones = await this.AsignacionesRepository.findOne({
       where: { id },
-      relations: [ 'usuario', 'proyecto', 'proyecto.area',]
+      relations: ['usuario', 'proyecto', 'proyecto.area',]
     })
-    if(!asignasiones){
+    if (!asignasiones) {
       throw new NotFoundException(`asignacion with id ${id} not founf`)
     }
-    
+
     return {
       ok: true,
       asignasiones
     }
   }
 
-async update(id: number, updateAsignacioneDto: UpdateAsignacioneDto) {
-  // 1. Buscamos la asignación actual (usando tu findOne que ya lanza 404)
-  const result = await this.findOne(id);
-  const asignacionExistente = result?.asignasiones; 
+  async update(id: number, updateAsignacioneDto: UpdateAsignacioneDto) {
+    // 1. Buscamos la asignación actual (usando tu findOne que ya lanza 404)
+    const result = await this.findOne(id);
+    const asignacionExistente = result?.asignasiones;
 
-  // 2. Desestructuramos para separar los IDs de los datos directos (como la fecha)
-  const { idProyecto, idUser, ...datosActualizar } = updateAsignacioneDto;
+    // 2. Desestructuramos para separar los IDs de los datos directos (como la fecha)
+    const { idProyecto, idUser, ...datosActualizar } = updateAsignacioneDto;
 
-  // 3. Validación y asignación de Proyecto (si viene en el DTO)
-  if (idProyecto) {
-    const res = await this.proyectosService.findOne(idProyecto);
-    if (!res.proyecto) {
-      throw new NotFoundException(`Proyecto con id ${idProyecto} no encontrado`);
+    // 3. Validación y asignación de Proyecto (si viene en el DTO)
+    if (idProyecto) {
+      const res = await this.proyectosService.findOne(idProyecto);
+      if (!res.proyecto) {
+        throw new NotFoundException(`Proyecto con id ${idProyecto} no encontrado`);
+      }
+      // Lo anexamos dinámicamente al objeto de actualización
+      datosActualizar['proyecto'] = res.proyecto;
     }
-    // Lo anexamos dinámicamente al objeto de actualización
-    datosActualizar['proyecto'] = res.proyecto;
-  }
 
-  // 4. Validación y asignación de Usuario (si viene en el DTO)
-  if (idUser) {
-    const res = await this.authService.findOne(idUser);
-    const usuario = res.usuarios; // Asegúrate de que tu AuthService use este nombre 'usuarios'
-    if (!usuario) {
-      throw new NotFoundException(`Usuario con id ${idUser} no encontrado`);
+    // 4. Validación y asignación de Usuario (si viene en el DTO)
+    if (idUser) {
+      const res = await this.authService.findOne(idUser);
+      const usuario = res.usuarios; // Asegúrate de que tu AuthService use este nombre 'usuarios'
+      if (!usuario) {
+        throw new NotFoundException(`Usuario con id ${idUser} no encontrado`);
+      }
+      // Lo anexamos dinámicamente al objeto de actualización
+      datosActualizar['usuario'] = usuario;
     }
-    // Lo anexamos dinámicamente al objeto de actualización
-    datosActualizar['usuario'] = usuario;
+
+    try {
+      // 5. El merge combina: (Entidad Base, Nuevos Datos con Entidades anexadas)
+      const asignacionActualizada = this.AsignacionesRepository.merge(
+        asignacionExistente!,
+        datosActualizar
+      );
+
+      await this.AsignacionesRepository.save(asignacionActualizada);
+
+      return {
+        ok: true,
+        asignacion: asignacionActualizada
+      };
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
   }
 
-  try {
-    // 5. El merge combina: (Entidad Base, Nuevos Datos con Entidades anexadas)
-    const asignacionActualizada = this.AsignacionesRepository.merge(
-      asignacionExistente!, 
-      datosActualizar
-    );
+  async remove(id: number) {
+    // 1. Buscamos la asignación (usando tu findOne que ya lanza el 404)
+    const result = await this.findOne(id);
+    const asignacion = result?.asignasiones; // Extraemos la entidad
 
-    await this.AsignacionesRepository.save(asignacionActualizada);
+    if (!asignacion) {
+      throw new NotFoundException(`Asignacion with id ${id} not found`);
+    }
 
-    return {
-      ok: true,
-      asignacion: asignacionActualizada
-    };
-  } catch (error) {
-    this.handleDBExceptions(error);
+    try {
+      // 2. IMPORTANTE: Usamos el repositorio de ASIGNACIONES para borrar
+      // No el servicio de proyectos, ya que no queremos borrar el proyecto, solo la asignación.
+      await this.AsignacionesRepository.remove(asignacion);
+
+      return {
+        ok: true,
+        message: `Asignacion with id ${id} has been removed`
+      };
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
   }
-}
-
- async remove(id: number) {
-  // 1. Buscamos la asignación (usando tu findOne que ya lanza el 404)
-  const result = await this.findOne(id);
-  const asignacion = result?.asignasiones; // Extraemos la entidad
-
-  if (!asignacion) {
-    throw new NotFoundException(`Asignacion with id ${id} not found`);
-  }
-
-  try {
-    // 2. IMPORTANTE: Usamos el repositorio de ASIGNACIONES para borrar
-    // No el servicio de proyectos, ya que no queremos borrar el proyecto, solo la asignación.
-    await this.AsignacionesRepository.remove(asignacion);
-
-    return {
-      ok: true,
-      message: `Asignacion with id ${id} has been removed`
-    };
-  } catch (error) {
-    this.handleDBExceptions(error);
-  }
-}
   private handleDBExceptions(error: any) {
     if (error.code === '23505') {
       throw new BadRequestException(`Asignacion exists ${error.detail}`);
