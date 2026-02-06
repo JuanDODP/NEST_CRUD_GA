@@ -194,4 +194,16 @@ export class AuthService {
     console.error(error); // Usar console.error para logs de error
     throw new InternalServerErrorException('Error inesperado, revisar logs del servidor');
   }
+
+  // checar status
+    async checkAuthStatus( user: User ){
+
+    return {
+      user: user,
+     token: await this.getJwtToken({ id: user.id }),
+    };
+
+  }
+
+  // ========================
 }

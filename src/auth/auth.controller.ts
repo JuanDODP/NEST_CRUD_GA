@@ -3,6 +3,8 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-auth.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { User } from './entities/user.entity';
+import { Auth, GetUser } from './decorators';
 
 
 @Controller('auth')
@@ -34,7 +36,14 @@ export class AuthController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.authService.remove(id)
   }
-
-
+// checar status
+@Get('check-status')
+  @Auth()
+  checkAuthStatus(
+    @GetUser() user: User
+  ) {
+    return this.authService.checkAuthStatus( user );
+  }
+// ================================================
 
 }
