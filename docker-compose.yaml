@@ -1,12 +1,38 @@
+# services:
+#   db:
+#     image: postgres:15
+#     restart: always
+#     container_name: CRUDGA_DB
+#     ports:
+#       - "5434:5432"
+#     environment:
+#       POSTGRES_PASSWORD: ${DB_PASSWORD}
+#       POSTGRES_DB: ${DB_NAME}
+#     volumes:
+#       - ./postgres-data:/var/lib/postgresql/data
+
+
+
 services:
   db:
-    image: postgres:15
-    restart: always
+    # Imagen oficial de Microsoft SQL Server 2022
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    # VITAL para Mac M4: fuerza la emulación para evitar errores de arquitectura
+    platform: linux/amd64 
     container_name: CRUDGA_DB
-    ports:
-      - "5434:5432"
+    restart: always
     environment:
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      # Aceptar los términos de licencia (Obligatorio)
+      - ACCEPT_EULA=Y
+      # Contraseña del usuario 'sa' (debe coincidir con tu .env)
+      - MSSQL_SA_PASSWORD=Juan123juan!
+      # Versión de desarrollo gratuita
+      - MSSQL_PID=Developer
+    ports:
+      # SQL Server usa el puerto 1433 por defecto
+      - "1433:1433"
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+      # Usamos la carpeta que agregamos al .gitignore
+      - ./mssql-data:/var/opt/mssql/data
+    # Recomendado: SQL Server requiere al menos 2GB de RAM para funcionar bien
+    mem_limit: 2g
