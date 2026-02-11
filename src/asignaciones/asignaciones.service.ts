@@ -9,134 +9,119 @@ import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class AsignacionesService {
-  private readonly logger = new Logger('ProyectosService');
+  private readonly logger = new Logger('AsignacionesService');
 
   constructor(
     @InjectRepository(Asignacion)
-    private AsignacionesRepository: Repository<Asignacion>,
+    private asignacionesRepository: Repository<Asignacion>,
     private proyectosService: ProyectosService,
     private authService: AuthService,
-
     private readonly dataSource: DataSource
-  ) {
+  ) {}
 
-  }
   async create(createAsignacioneDto: CreateAsignacioneDto) {
-    const { idProyecto, idUser, ...asignaciones } = createAsignacioneDto
-    const { proyecto } = await this.proyectosService.findOne(idProyecto)
-    const { usuarios } = await this.authService.findOne(idUser)
-    if (!proyecto) {
-      throw new NotFoundException(`proyect with id ${idProyecto} not found`)
-    }
-    else
-      if (!usuarios) {
-        throw new NotFoundException(`user with id ${idUser} not found`)
+    const { idProyecto, idUser, ...asignacionesData } = createAsignacioneDto;
+    
+    // Buscamos las entidades relacionadas
+    const { proyecto } = await this.proyectosService.findOne(idProyecto);
+    const { usuarios: usuario } = await this.authService.findOne(idUser);
 
-      }
-
+    if (!proyecto) throw new NotFoundException(`Project with id ${idProyecto} not found`);
+    if (!usuario) throw new NotFoundException(`User with id ${idUser} not found`);
 
     try {
-      const asignacion = await this.AsignacionesRepository.create({
-        ...asignaciones,
-        proyecto: proyecto,
-        usuario: usuarios
-
-      })
-      await this.AsignacionesRepository.save(asignacion)
+      const asignacion = this.asignacionesRepository.create({
+        ...asignacionesData,
+        proyecto,
+        usuario
+      });
+      
+      await this.asignacionesRepository.save(asignacion);
+      
       return {
         ok: true,
         asignacion
-      }
+      };
     } catch (error) {
-      this.handleDBExceptions(error)
+      this.handleDBExceptions(error);
     }
   }
 
   async findAll() {
-
     try {
-      const asignaciones = await this.AsignacionesRepository.find({
-        relations: ['usuario', 'proyecto', 'proyecto.area',],
+      const asignaciones = await this.asignacionesRepository.find({
+        relations: ['usuario', 'proyecto', 'proyecto.area'],
         where: {
           usuario: {
             isActive: true
           }
         }
+      });
 
-      })
-      // limpiar asignaciones para eliminar datos sensibles
+      // Limpiamos datos sensibles (password) de los usuarios relacionados
       const cleanAsignaciones = asignaciones.map(asignacion => {
-      if (asignacion.usuario) {
-        delete (asignacion.usuario as any).password;
-      }
-      return asignacion;
-    });
+        if (asignacion.usuario) {
+          const { password, ...userWithoutPassword } = asignacion.usuario;
+          asignacion.usuario = userWithoutPassword as any;
+        }
+        return asignacion;
+      });
+
       return {
         ok: true,
         asignaciones: cleanAsignaciones
-      }
+      };
     } catch (error) {
-
+      this.handleDBExceptions(error);
     }
   }
 
   async findOne(id: number) {
-
-    const asignasiones = await this.AsignacionesRepository.findOne({
+    const asignacion = await this.asignacionesRepository.findOne({
       where: { id },
-      relations: ['usuario', 'proyecto', 'proyecto.area',]
-    })
-    if (!asignasiones) {
-      throw new NotFoundException(`asignacion with id ${id} not found`)
+      relations: ['usuario', 'proyecto', 'proyecto.area']
+    });
+
+    if (!asignacion) {
+      throw new NotFoundException(`Asignacion with id ${id} not found`);
     }
-    // Si existe el usuario, quitamos la contraseña
-  if (asignasiones.usuario) {
-    const { password, ...userWithoutPassword } = asignasiones.usuario;
-    asignasiones.usuario = userWithoutPassword as any;
-  }
+
+    if (asignacion.usuario) {
+      const { password, ...userWithoutPassword } = asignacion.usuario;
+      asignacion.usuario = userWithoutPassword as any;
+    }
+
     return {
       ok: true,
-      asignasiones: asignasiones
-    }
+      asignasiones: asignacion
+    };
   }
 
   async update(id: number, updateAsignacioneDto: UpdateAsignacioneDto) {
-    // 1. Buscamos la asignación actual (usando tu findOne que ya lanza 404)
     const result = await this.findOne(id);
-    const asignacionExistente = result?.asignasiones;
+    const asignacionExistente = result.asignasiones;
 
-    // 2. Desestructuramos para separar los IDs de los datos directos (como la fecha)
     const { idProyecto, idUser, ...datosActualizar } = updateAsignacioneDto;
 
-    // 3. Validación y asignación de Proyecto (si viene en el DTO)
     if (idProyecto) {
       const res = await this.proyectosService.findOne(idProyecto);
-      if (!res.proyecto) {
-        throw new NotFoundException(`Proyecto con id ${idProyecto} no encontrado`);
-      }
-      // Lo anexamos dinámicamente al objeto de actualización
+      if (!res.proyecto) throw new NotFoundException(`Proyecto con id ${idProyecto} no encontrado`);
       datosActualizar['proyecto'] = res.proyecto;
     }
 
-    // 4. Validación y asignación de Usuario (si viene en el DTO)
     if (idUser) {
       const res = await this.authService.findOne(idUser);
-      const usuario = res.usuarios; // Asegúrate de que tu AuthService use este nombre 'usuarios'
-      if (!usuario) {
-        throw new NotFoundException(`Usuario con id ${idUser} no encontrado`);
-      }
-      // Lo anexamos dinámicamente al objeto de actualización
-      datosActualizar['usuario'] = usuario;
+      if (!res.usuarios) throw new NotFoundException(`Usuario con id ${idUser} no encontrado`);
+      datosActualizar['usuario'] = res.usuarios;
     }
 
     try {
-      // 5. El merge combina: (Entidad Base, Nuevos Datos con Entidades anexadas)
-      const asignacionActualizada = this.AsignacionesRepository.merge(
-        asignacionExistente!,
+      const asignacionActualizada = this.asignacionesRepository.merge(
+        asignacionExistente,
         datosActualizar
       );
 
-      await this.AsignacionesRepository.save(asignacionActualizada);
+      await this.asignacionesRepository.save(asignacionActualizada);
 
       return {
         ok: true,
@@ -148,19 +133,11 @@ export class AsignacionesService {
   }
 
   async remove(id: number) {
-    // 1. Buscamos la asignación (usando tu findOne que ya lanza el 404)
     const result = await this.findOne(id);
-    const asignacion = result?.asignasiones; // Extraemos la entidad
-
-    if (!asignacion) {
-      throw new NotFoundException(`Asignacion with id ${id} not found`);
-    }
+    const asignacion = result.asignasiones;
 
     try {
-      // 2. IMPORTANTE: Usamos el repositorio de ASIGNACIONES para borrar
-      // No el servicio de proyectos, ya que no queremos borrar el proyecto, solo la asignación.
-      await this.AsignacionesRepository.remove(asignacion);
-
+      await this.asignacionesRepository.remove(asignacion);
       return {
         ok: true,
         message: `Asignacion with id ${id} has been removed`
@@ -169,11 +146,20 @@ export class AsignacionesService {
       this.handleDBExceptions(error);
     }
   }
+
   private handleDBExceptions(error: any) {
-    if (error.code === '23505') {
-      throw new BadRequestException(`Asignacion exists ${error.detail}`);
+    // Cambiamos 'error.code' (Postgres) por 'error.number' (SQL Server)
+    // 2627 y 2601: Violación de restricción Unique
+    if (error.number === 2627 || error.number === 2601) {
+      throw new BadRequestException(`Asignacion already exists: ${error.message}`);
     }
+
+    // 547: Violación de Foreign Key (Conflictos de referencia)
+    if (error.number === 547) {
+        throw new BadRequestException(`Database relation error: ${error.message}`);
+    }
+
     this.logger.error(error);
-    throw new InternalServerErrorException('Could not create project');
+    throw new InternalServerErrorException('Unexpected error, check server logs');
   }
 }

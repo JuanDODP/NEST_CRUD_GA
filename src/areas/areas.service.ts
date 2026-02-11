@@ -13,8 +13,8 @@ export class AreasService {
     @InjectRepository(Area)
     private readonly areasRepository: Repository<Area>,
   ) { }
-  async create(createAreaDto: CreateAreaDto) {
 
+  async create(createAreaDto: CreateAreaDto) {
     try {
       const area = this.areasRepository.create(createAreaDto);
       await this.areasRepository.save(area);
@@ -23,7 +23,6 @@ export class AreasService {
         area
       };
     } catch (error) {
-
       this.handleDBExceptions(error);
     }
   }
@@ -38,28 +37,15 @@ export class AreasService {
     } catch (error) {
       this.handleDBExceptions(error);
     }
-    const areas = await this.areasRepository.find();
-    return {
-      ok: true,
-      areas
-    };
   }
 
   async findOne(id: number) {
-    let area: Area | null;
-    if(id){
-       area = await this.areasRepository.findOneBy({ id });
-     
-    }
-    else{
-      const queryBuilder = this.areasRepository.createQueryBuilder('area');
-      area=  await queryBuilder
-       .where('UPPER(title) =:title or slug =:slug', { title: id.toString().toUpperCase(), slug: id.toString() })
-       .getOne();
-    }
+    const area = await this.areasRepository.findOneBy({ id });
+
     if (!area) {
-      throw new BadRequestException(`Area with id ${id} not found`);
+      throw new NotFoundException(`Area with id ${id} not found`);
     }
+
     return {
       ok: true,
       area
@@ -67,13 +53,15 @@ export class AreasService {
   }
 
   async update(id: number, updateAreaDto: UpdateAreaDto) {
-   const area = await this.areasRepository.preload({
+    const area = await this.areasRepository.preload({
       id: id,
       ...updateAreaDto
     });
+
     if (!area) {
-      throw new BadRequestException(`Area with id ${id} not found`);
+      throw new NotFoundException(`Area with id ${id} not found`);
     }
+
     try {
       await this.areasRepository.save(area);
       return {
@@ -86,32 +74,36 @@ export class AreasService {
   }
 
   async remove(id: number) {
-   const area = await this.areasRepository.findOne({where: {id}});
-   if (!area) {
-     throw new NotFoundException(`Area with id ${id} not found`);
-   }
-   try {
-     await this.areasRepository.remove(area);
-     return {
-       ok: true,
-       message: `Area with id "${id}" has been removed`
-     };
-   } catch (error) {
-    // El código '23503' es específicamente para violación de llave foránea
-    if (error.code === '23503') {
-      throw new BadRequestException(
-        `No se puede eliminar el área porque tiene proyectos asignados. Elimina o mueve los proyectos primero.`
-      );
+    const area = await this.areasRepository.findOne({where: {id}});
+    if (!area) {
+      throw new NotFoundException(`Area with id ${id} not found`);
     }
-    this.handleDBExceptions(error); // Tu manejador genérico
-  }
+    try {
+      await this.areasRepository.remove(area);
+      return {
+        ok: true,
+        message: `Area with id "${id}" has been removed`
+      };
+    } catch (error) {
+      // --- CAMBIO PARA SQL SERVER ---
+      // El código 547 corresponde a conflictos de Foreign Key (instrucción REFERENCE)
+      if (error.number === 547) {
+        throw new BadRequestException(
+          `No se puede eliminar el área porque tiene registros relacionados (proyectos).`
+        );
+      }
+      this.handleDBExceptions(error);
+    }
   }
 
   private handleDBExceptions(error: any) {
-    if (error.code === '23505') {
-      throw new BadRequestException(`Area exists ${error.detail}`);
+    // --- CAMBIO PARA SQL SERVER ---
+    // Los códigos 2627 y 2601 son para violaciones de restricción UNIQUE
+    if (error.number === 2627 || error.number === 2601) {
+      throw new BadRequestException(`El área ya existe: ${error.message}`);
     }
+
     this.logger.error(error);
-    throw new InternalServerErrorException('Could not create area - Check server logs');
+    throw new InternalServerErrorException('Could not process request - Check server logs');
   }
 }

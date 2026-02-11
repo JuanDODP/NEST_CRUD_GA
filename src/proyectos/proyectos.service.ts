@@ -9,21 +9,32 @@ import { AreasService } from '../areas/areas.service';
 @Injectable()
 export class ProyectosService {
   private readonly logger = new Logger('ProyectosService');
+
   constructor(
     @InjectRepository(Proyecto)
     private proyectosRepository: Repository<Proyecto>,
     private areasService: AreasService,
     private readonly dataSource: DataSource
   ) { }
+
   async create(createProyectoDto: CreateProyectoDto) {
-    const { idArea, ...proyectos } = createProyectoDto;
-    const area = await this.areasService.findOne(idArea);
+    const { idArea, ...proyectosData } = createProyectoDto;
+    
+    // Buscamos el área
+    const { area } = await this.areasService.findOne(idArea);
+    
     if (!area) {
       throw new NotFoundException(`Area with id ${idArea} not found`);
     }
+
     try {
-      const proyect = await this.proyectosRepository.create({ ...proyectos, area: area.area });
+      const proyect = this.proyectosRepository.create({ 
+        ...proyectosData, 
+        area: area 
+      });
+      
       await this.proyectosRepository.save(proyect);
+      
       return {
         ok: true,
         proyect
@@ -35,7 +46,9 @@ export class ProyectosService {
 
   async findAll() {
     try {
-      const proyectos = await this.proyectosRepository.find({ relations: ['area'] });
+      const proyectos = await this.proyectosRepository.find({ 
+        relations: ['area'] 
+      });
       return {
         ok: true,
         proyectos
@@ -50,35 +63,35 @@ export class ProyectosService {
       where: { id },
       relations: ['area'],
     });
+
     if (!proyecto) {
       throw new NotFoundException(`Proyecto with id ${id} not found`);
     }
+
     return {
       ok: true,
       proyecto
     };
   }
 
-
-
   async update(id: number, updateProyectoDto: UpdateProyectoDto) {
-    // 1. Buscamos primero el proyecto para estar seguros de que existe
-    // Tu findOne ya maneja el error 404 si no existe
     const data = await this.findOne(id);
     const proyectoExistente = data.proyecto;
 
     const { idArea, ...datosActualizar } = updateProyectoDto;
+
     if (idArea) {
-      const area = await this.areasService.findOne(idArea);
+      const { area } = await this.areasService.findOne(idArea);
       if (!area) {
         throw new NotFoundException(`Area with id ${idArea} not found`);
       }
-      datosActualizar['area'] = area.area;
+      datosActualizar['area'] = area;
     }
 
     try {
       const proyectoActualizado = this.proyectosRepository.merge(proyectoExistente, datosActualizar);
       await this.proyectosRepository.save(proyectoActualizado);
+      
       return {
         ok: true,
         proyecto: proyectoActualizado
@@ -89,31 +102,32 @@ export class ProyectosService {
   }
 
   async remove(id: number) {
-    const proyecto = await this.findOne(id);
-    if (!proyecto) {
-      throw new NotFoundException(`Proyecto with id ${id} not found`);
-    }
+    const { proyecto } = await this.findOne(id);
+
     try {
-      await this.proyectosRepository.remove(proyecto.proyecto);
+      await this.proyectosRepository.remove(proyecto);
       return {
+        ok: true,
         message: `Proyecto with id ${id} removed successfully`
       };
     } catch (error) {
-      // El código '23503' es específicamente para violación de llave foránea
-      if (error.code === '23503') {
+      // CAMBIO PARA SQL SERVER: Error 547 es violación de Foreign Key (instrucción REFERENCE)
+      if (error.number === 547) {
         throw new BadRequestException(
-          `No se puede eliminar el proyecto porque se ocupa en asignaciones. Elimina o mueve las asignaciones  primero.`
+          `No se puede eliminar el proyecto porque tiene asignaciones activas. Elimina las asignaciones primero.`
         );
       }
-      this.handleDBExceptions(error); // Tu manejador genérico
+      this.handleDBExceptions(error);
     }
   }
+
   private handleDBExceptions(error: any) {
-    if (error.code === '23505') {
-      throw new BadRequestException(`Project exists ${error.detail}`);
+    // CAMBIO PARA SQL SERVER: 2627 y 2601 son para llaves duplicadas (Unique)
+    if (error.number === 2627 || error.number === 2601) {
+      throw new BadRequestException(`El proyecto ya existe: ${error.message}`);
     }
+
     this.logger.error(error);
-    throw new InternalServerErrorException('Could not create project');
+    throw new InternalServerErrorException('Error inesperado, revisar logs del servidor');
   }
 }
-
