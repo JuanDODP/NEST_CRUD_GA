@@ -29,9 +29,9 @@ export class AuthService {
 
       await this.userRepository.save(user);
 
-
+        const { password: _, ...userRest } = user; // Desestructuramos para eliminar el password de la respuesta
       return {
-        ...user,
+       user: userRest,
         token: await this.getJwtToken({ id: user.id }),
       };
     } catch (error) {
@@ -40,7 +40,7 @@ export class AuthService {
   }
 
   async login(loginAuthDto: LoginUserDto) {
-    const { email, password } = loginAuthDto;
+    const { email, password, ...userData } = loginAuthDto;
 
 
     const user = await this.userRepository.findOne({
@@ -59,10 +59,9 @@ export class AuthService {
     }
 
     // 4. Quitamos el password del objeto antes de retornar
-
-
+    const { password: _, ...userRest } = user; // Desestructuramos para eliminar el password de la respuesta
     return {
-      ...user,
+      ...userRest,
       token: await this.getJwtToken({ id: user.id }),
     };
   }

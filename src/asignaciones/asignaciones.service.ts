@@ -64,9 +64,16 @@ export class AsignacionesService {
         }
 
       })
+      // limpiar asignaciones para eliminar datos sensibles
+      const cleanAsignaciones = asignaciones.map(asignacion => {
+      if (asignacion.usuario) {
+        delete (asignacion.usuario as any).password;
+      }
+      return asignacion;
+    });
       return {
         ok: true,
-        asignaciones
+        asignaciones: cleanAsignaciones
       }
     } catch (error) {
 
@@ -80,12 +87,16 @@ export class AsignacionesService {
       relations: ['usuario', 'proyecto', 'proyecto.area',]
     })
     if (!asignasiones) {
-      throw new NotFoundException(`asignacion with id ${id} not founf`)
+      throw new NotFoundException(`asignacion with id ${id} not found`)
     }
-
+    // Si existe el usuario, quitamos la contraseña
+  if (asignasiones.usuario) {
+    const { password, ...userWithoutPassword } = asignasiones.usuario;
+    asignasiones.usuario = userWithoutPassword as any;
+  }
     return {
       ok: true,
-      asignasiones
+      asignasiones: asignasiones
     }
   }
 
