@@ -63,27 +63,28 @@ import { ProyectosModule } from './proyectos/proyectos.module';
 import { AsignacionesModule } from './asignaciones/asignaciones.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { env } from 'process';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
 
- TypeOrmModule.forRoot({
-  type: 'mssql',
-  host: '127.0.0.1',
-  port: 1433,
-  username: 'sa',
-  password: 'Juan123juan!', // Tu contraseña exacta del .env
-  database: 'CRUDGA_DB',
-  autoLoadEntities: true,
-  synchronize: true,
-  extra: {
-    options: {
-      encrypt: false,
-      trustServerCertificate: true,
-    },
-  },
-}),
+    TypeOrmModule.forRoot({
+      type: 'mssql',
+      host: env.DB_HOST,
+      port: Number(env.DB_PORT),
+      username: env.DB_USERNAME,
+      password: env.DB_PASSWORD,
+      database: env.DB_NAME,
+      autoLoadEntities: true,
+      synchronize: true,
+      extra: {
+        options: {
+          encrypt: false,
+          trustServerCertificate: true,
+        },
+      },
+    }),
 
     AuthModule,
     AreasModule,
@@ -93,4 +94,4 @@ import { AppService } from './app.service';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

@@ -25,7 +25,7 @@ services:
       # Aceptar los términos de licencia (Obligatorio)
       - ACCEPT_EULA=Y
       # Contraseña del usuario 'sa' (debe coincidir con tu .env)
-      - MSSQL_SA_PASSWORD=Juan123juan!
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
       # Versión de desarrollo gratuita
       - MSSQL_PID=Developer
     ports:
