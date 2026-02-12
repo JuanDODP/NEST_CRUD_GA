@@ -83,22 +83,28 @@ export class ProyectosService {
     };
   }
 
-  async update(id: number, updateProyectoDto: UpdateProyectoDto) {
-    const data = await this.findOne(id);
-    const proyectoExistente = data.proyecto;
+async update(id: number, updateProyectoDto: UpdateProyectoDto, file?: Express.Multer.File) {
+    // 1. Buscamos el proyecto existente
+    const { proyecto: proyectoExistente } = await this.findOne(id);
 
     const { idArea, ...datosActualizar } = updateProyectoDto;
 
+    // 2. Si cambian el Área, verificamos que exista
     if (idArea) {
       const { area } = await this.areasService.findOne(idArea);
-      if (!area) {
-        throw new NotFoundException(`Area with id ${idArea} not found`);
-      }
-      datosActualizar['area'] = area;
+      if (!area) throw new NotFoundException(`Area with id ${idArea} not found`);
+      proyectoExistente.area = area;
+    }
+
+    // 3. Si subieron una nueva imagen, actualizamos la URL
+    if (file) {
+      proyectoExistente.imagen = `${this.configService.get('HOST_API')}/files/proyectos/${file.filename}`;
     }
 
     try {
+      // 4. Fusionamos los cambios de texto (título, precio, etc.)
       const proyectoActualizado = this.proyectosRepository.merge(proyectoExistente, datosActualizar);
+      
       await this.proyectosRepository.save(proyectoActualizado);
 
       return {
@@ -220,18 +226,6 @@ export class ProyectosService {
   }
 
   // =============================================================================================================================
-  // obtener imagen por defecto 
-
-  // getStaticProductImage(imageName: string) {
-  //   const path = join(__dirname, '../../static/proyectos', imageName);
-
-  //   if (!existsSync(path)) {
-  //     throw new BadRequestException('Image not found ' + imageName);
-  //   }
-
-  //   return path;
-
-  // }
 
   private handleDBExceptions(error: any) {
     // CAMBIO PARA SQL SERVER: 2627 y 2601 son para llaves duplicadas (Unique)

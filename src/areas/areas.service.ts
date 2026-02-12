@@ -69,26 +69,36 @@ export class AreasService {
     };
   }
 
-  async update(id: number, updateAreaDto: UpdateAreaDto) {
-    const area = await this.areasRepository.preload({
-      id: id,
-      ...updateAreaDto
-    });
+async update(id: number, updateAreaDto: UpdateAreaDto, file?: Express.Multer.File) {
+  
+  // 1. Preparamos el objeto para actualizar
+  const area = await this.areasRepository.preload({
+    id: id,
+    ...updateAreaDto,
+  });
 
-    if (!area) {
-      throw new NotFoundException(`Area with id ${id} not found`);
-    }
+  if (!area) throw new NotFoundException(`Area with id ${id} not found`);
 
-    try {
-      await this.areasRepository.save(area);
-      return {
-        ok: true,
-        area
-      };
-    } catch (error) {
-      this.handleDBExceptions(error);
-    }
+  // 2. Si el usuario subió una nueva imagen, actualizamos el nombre del archivo
+  if (file) {
+    area.imagen = file.filename;
   }
+
+  try {
+    await this.areasRepository.save(area);
+    
+    // 3. Retornamos el área con la URL completa para el frontend
+    return {
+      ok: true,
+      area: {
+        ...area,
+        imagen: `${this.configService.get('HOST_API')}/files/areas/${area.imagen}`
+      }
+    };
+  } catch (error) {
+    this.handleDBExceptions(error);
+  }
+}
 
   async remove(id: number) {
     const area = await this.areasRepository.findOne({ where: { id } });

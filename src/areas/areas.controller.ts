@@ -39,11 +39,22 @@ create(
     return this.areasService.findOne(+id);
   }
 
-  @Patch(':id')
-  @Auth()
-  update(@Param('id', ParseIntPipe) id: string, @Body() updateAreaDto: UpdateAreaDto) {
-    return this.areasService.update(+id, updateAreaDto);
-  }
+ @Patch(':id')
+@Auth()
+@UseInterceptors(FileInterceptor('imagen', { // Usamos 'imagen' para coincidir con tu POST
+  fileFilter,
+  storage: diskStorage({ 
+    destination: './static/areas',
+    filename: fileNamer
+  })
+}))
+update(
+  @Param('id', ParseIntPipe) id: string, 
+  @Body() updateAreaDto: UpdateAreaDto,
+  @UploadedFile() file: Express.Multer.File // El archivo es opcional aquí
+) {
+  return this.areasService.update(+id, updateAreaDto, file);
+}
 
   @Delete(':id')
   @Auth()

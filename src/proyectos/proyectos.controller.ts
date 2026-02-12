@@ -41,8 +41,21 @@ export class ProyectosController {
   @Patch(':id')
   @Auth()
 
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateProyectoDto: UpdateProyectoDto) {
-    return this.proyectosService.update(id, updateProyectoDto);
+ @Patch(':id')
+  @Auth()
+  @UseInterceptors(FileInterceptor('imagen', {
+    fileFilter,
+    storage: diskStorage({
+      destination: './static/proyectos',
+      filename: fileNamer
+    })
+  }))
+  update(
+    @Param('id', ParseIntPipe) id: number, 
+    @Body() updateProyectoDto: UpdateProyectoDto,
+    @UploadedFile() file?: Express.Multer.File // El archivo ahora es opcional en el update
+  ) {
+    return this.proyectosService.update(id, updateProyectoDto, file);
   }
 
   @Delete(':id')
@@ -59,15 +72,5 @@ export class ProyectosController {
 
 
 
-  //   // Obtener imagen de producto
-  // @Get('file/:imageName')
-  // findProductImage(@Res() res:any,
-  //  @Param('imageName') imageName: string,  ) {
-  //   const path = this.proyectosService.getStaticProductImage(imageName);
-  //   // res.status(403).json({ok:false, path})
-  //    // colocar url de la imagen
-  //   // const secureUrl = `${this.configService.get('HOST_API')}/files/product/${file.filename}`;
-  //    res.sendFile(path);
-  //    return path ; 
-  // }
+
 }
