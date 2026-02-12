@@ -4,7 +4,7 @@
 //     @IsString()
 //     nombreProyecto: string;
 
-   
+
 
 //     @IsString()
 //     fechaInicio: string;
@@ -13,14 +13,15 @@
 //     fechaFin: string;
 //     @IsInt()
 //     idArea: number;
-    
+
 // }
 
 
-import { IsInt, IsString, IsISO8601, MinLength, IsNotEmpty } from "class-validator";
+import { Type } from "class-transformer";
+import { IsInt, IsString, IsISO8601, MinLength, IsNotEmpty, IsOptional, IsPositive } from "class-validator";
 
 export class CreateProyectoDto {
-    
+
     @IsString()
     @IsNotEmpty()
     @MinLength(3, { message: 'El nombre del proyecto debe tener al menos 3 caracteres' })
@@ -34,8 +35,14 @@ export class CreateProyectoDto {
     @IsNotEmpty()
     fechaFin: string;
 
+
     @IsInt({ message: 'El idArea debe ser un número entero' })
     @IsNotEmpty()
+    @IsPositive({ message: 'El idArea debe ser un número positivo' })
+    @Type(() => Number) // Esto asegura que el valor se transforme a número antes de la validación
     idArea: number;
-    
+    @IsString()
+    // @MinLength(1, { message: 'La imagen es requerida' })
+    @IsOptional()
+    imagen?: string;
 }

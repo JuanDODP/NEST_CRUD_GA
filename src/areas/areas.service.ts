@@ -6,22 +6,38 @@ import { Area } from './entities/area.entity';
 import { Repository } from 'typeorm';
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class AreasService {
   private readonly logger = new Logger('AreasService');
-  
+  private readonly configService: ConfigService;
   constructor(
     @InjectRepository(Area)
     private readonly areasRepository: Repository<Area>,
-  ) { }
+    configService: ConfigService
+  ) {
+    this.configService = configService;
+  }
 
-  async create(createAreaDto: CreateAreaDto) {
+  async create(createAreaDto: CreateAreaDto, file: Express.Multer.File) {
+    console.log('================================');
+    console.log('EL file',{file})
+    console.log('================================');
     try {
-      const area = this.areasRepository.create(createAreaDto);
+      const area = this.areasRepository.create({
+        ...createAreaDto,
+        imagen: file.filename // Guardamos solo el nombre
+      });
+
       await this.areasRepository.save(area);
+
       return {
         ok: true,
-        area
+        area: {
+          ...area,
+          imagen: `${this.configService.get('HOST_API')}/files/areas/${file.filename}` // Retornamos URL completa
+
+        }
       };
     } catch (error) {
       this.handleDBExceptions(error);
@@ -71,11 +87,11 @@ export class AreasService {
       };
     } catch (error) {
       this.handleDBExceptions(error);
-    } 
+    }
   }
 
   async remove(id: number) {
-    const area = await this.areasRepository.findOne({where: {id}});
+    const area = await this.areasRepository.findOne({ where: { id } });
     if (!area) {
       throw new NotFoundException(`Area with id ${id} not found`);
     }
@@ -99,37 +115,37 @@ export class AreasService {
 
   // descargarExcel
   async exportToExcel(res: Response) {
-  // 1. Obtener todos los datos de SQL Server
-  const areas = await this.areasRepository.find();
+    // 1. Obtener todos los datos de SQL Server
+    const areas = await this.areasRepository.find();
 
-  // 2. Crear el libro y la hoja de Excel
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Areas');
+    // 2. Crear el libro y la hoja de Excel
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Areas');
 
-  // 3. Definir las columnas
-  worksheet.columns = [
-    { header: 'ID', key: 'id', width: 10 },
-    { header: 'Nombre', key: 'nombre', width: 30 },
-    { header: 'Descripción', key: 'description', width: 50 },
-  ];
+    // 3. Definir las columnas
+    worksheet.columns = [
+      { header: 'ID', key: 'id', width: 10 },
+      { header: 'Nombre', key: 'nombre', width: 30 },
+      { header: 'Descripción', key: 'description', width: 50 },
+    ];
 
-  // 4. Agregar las filas
-  worksheet.addRows(areas);
+    // 4. Agregar las filas
+    worksheet.addRows(areas);
 
-  // 5. Configurar la respuesta para que el navegador descargue el archivo
-  res.setHeader(
-    'Content-Type',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  );
-  res.setHeader(
-    'Content-Disposition',
-    'attachment; filename=' + 'areas_reporte.xlsx',
-  );
+    // 5. Configurar la respuesta para que el navegador descargue el archivo
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=' + 'areas_reporte.xlsx',
+    );
 
-  // 6. Escribir el archivo en el stream de respuesta
-  await workbook.xlsx.write(res);
-  res.end();
-}
+    // 6. Escribir el archivo en el stream de respuesta
+    await workbook.xlsx.write(res);
+    res.end();
+  }
   // =============================================================================================================================
 
   private handleDBExceptions(error: any) {

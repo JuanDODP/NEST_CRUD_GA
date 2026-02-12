@@ -1,18 +1,33 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Res, UploadedFile, BadRequestException, UseInterceptors } from '@nestjs/common';
 import { AreasService } from './areas.service';
 import { CreateAreaDto } from './dto/create-area.dto';
 import { UpdateAreaDto } from './dto/update-area.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
-import { Response as respuesta } from 'express'; // Asegúrate de que diga 'express'
+import { FileInterceptor } from '@nestjs/platform-express';
+import { fileFilter, fileNamer } from './helpers';
+import { diskStorage } from 'multer';
+
 @Controller('areas')
 export class AreasController {
   constructor(private readonly areasService: AreasService) { }
 
-  @Post()
-  @Auth()
-  create(@Body() createAreaDto: CreateAreaDto) {
-    return this.areasService.create(createAreaDto);
-  }
+@Post()
+@Auth()
+  @UseInterceptors(FileInterceptor('imagen', {    
+    fileFilter,
+    storage:diskStorage({ 
+      destination:'./static/areas',
+       filename:fileNamer
+    })
+  }))
+create(
+  @Body() createAreaDto: CreateAreaDto,
+  @UploadedFile() file: Express.Multer.File
+) {
+  if (!file) throw new BadRequestException('Imagen is required');
+
+  return this.areasService.create(createAreaDto, file);
+}
               
   @Get()
   findAll() {

@@ -17,10 +17,10 @@
 //     proyectos: Proyecto[];
 // }
 
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { AfterLoad, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Proyecto } from '../../proyectos/entities/proyecto.entity';
 
-@Entity('areas') 
+@Entity('areas')
 export class Area {
     @PrimaryGeneratedColumn('increment')
     id: number;
@@ -28,7 +28,7 @@ export class Area {
     // Usamos nvarchar con una longitud definida para optimizar índices
     @Column('nvarchar', { length: 255 })
     nombre: string;
-     
+
     @Column('nvarchar', { length: 255, default: 'default-image.png' })
     imagen: string;
 
@@ -39,4 +39,16 @@ export class Area {
     // La relación se mantiene igual, TypeORM gestiona la FK en SQL Server
     @OneToMany(() => Proyecto, (proyecto) => proyecto.area)
     proyectos: Proyecto[];
+
+
+    // Este método se ejecuta automáticamente después de cargar el área de la DB
+    @AfterLoad()
+    updateImageUrl() {
+        // Solo si la imagen no es ya una URL completa (para evitar duplicar el host)
+        if (this.imagen && !this.imagen.startsWith('http')) {
+            // Nota: Aquí podrías usar una variable de entorno, 
+            // pero para pruebas rápidas lo dejamos así o usamos el servicio.
+            this.imagen = `http://localhost:3000/api/files/areas/${this.imagen}`;
+        }
+    }
 }

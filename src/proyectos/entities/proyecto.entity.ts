@@ -24,7 +24,7 @@
 //   @OneToMany(() => Asignacion, (asignacion) => asignacion.proyecto)
 //   asignaciones: Asignacion[];
 // }
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, JoinColumn, OneToMany } from "typeorm";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, JoinColumn, OneToMany, AfterLoad } from "typeorm";
 import { Area } from '../../areas/entities/area.entity';
 import { Asignacion } from "src/asignaciones/entities/asignacione.entity";
 
@@ -47,10 +47,22 @@ export class Proyecto {
 
     // Relación ManyToOne: Se mantiene la lógica, TypeORM creará un 
     // campo areaId de tipo INT para SQL Server.
+    @Column('nvarchar', { length: 255, default: 'default-image.png' })
+    imagen: string;
     @ManyToOne(() => Area, (area) => area.proyectos)
-    @JoinColumn({ name: 'areaId' }) 
+    @JoinColumn({ name: 'areaId' })
     area: Area;
 
     @OneToMany(() => Asignacion, (asignacion) => asignacion.proyecto)
     asignaciones: Asignacion[];
+
+    @AfterLoad()
+    updateImageUrl() {
+        // Solo si la imagen no es ya una URL completa (para evitar duplicar el host)
+        if (this.imagen && !this.imagen.startsWith('http')) {
+            // Nota: Aquí podrías usar una variable de entorno, 
+            // pero para pruebas rápidas lo dejamos así o usamos el servicio.
+            this.imagen = `http://localhost:3000/api/files/proyectos/${this.imagen}`;
+        }
+    }
 }

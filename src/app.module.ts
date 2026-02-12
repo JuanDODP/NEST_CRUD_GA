@@ -64,11 +64,14 @@ import { AsignacionesModule } from './asignaciones/asignaciones.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { env } from 'process';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-
+    ConfigModule.forRoot({
+      isGlobal: true, 
+    }),
     TypeOrmModule.forRoot({
       type: 'mssql',
       host: env.DB_HOST,
@@ -90,6 +93,7 @@ import { env } from 'process';
     AreasModule,
     ProyectosModule,
     AsignacionesModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

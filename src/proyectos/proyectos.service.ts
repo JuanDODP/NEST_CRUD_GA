@@ -7,7 +7,9 @@ import { DataSource, Repository } from 'typeorm';
 import { AreasService } from '../areas/areas.service';
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
-
+import { existsSync } from 'fs';
+import { join } from 'path';
+import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class ProyectosService {
   private readonly logger = new Logger('ProyectosService');
@@ -16,10 +18,14 @@ export class ProyectosService {
     @InjectRepository(Proyecto)
     private proyectosRepository: Repository<Proyecto>,
     private areasService: AreasService,
-    private readonly dataSource: DataSource
+    private readonly dataSource: DataSource,
+    private readonly configService: ConfigService,
+
   ) { }
 
-  async create(createProyectoDto: CreateProyectoDto) {
+  async create(createProyectoDto: CreateProyectoDto, file: Express.Multer.File) {
+
+    if (!file) throw new BadRequestException('Imagen is required');
     const { idArea, ...proyectosData } = createProyectoDto;
 
     // Buscamos el área
@@ -32,6 +38,7 @@ export class ProyectosService {
     try {
       const proyect = this.proyectosRepository.create({
         ...proyectosData,
+        imagen: `${this.configService.get('HOST_API')}/files/proyectos/${file.filename}`, // Retornamos URL completa
         area: area
       });
 
@@ -213,6 +220,18 @@ export class ProyectosService {
   }
 
   // =============================================================================================================================
+  // obtener imagen por defecto 
+
+  // getStaticProductImage(imageName: string) {
+  //   const path = join(__dirname, '../../static/proyectos', imageName);
+
+  //   if (!existsSync(path)) {
+  //     throw new BadRequestException('Image not found ' + imageName);
+  //   }
+
+  //   return path;
+
+  // }
 
   private handleDBExceptions(error: any) {
     // CAMBIO PARA SQL SERVER: 2627 y 2601 son para llaves duplicadas (Unique)
