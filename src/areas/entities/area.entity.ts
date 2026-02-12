@@ -28,6 +28,9 @@ export class Area {
     // Usamos nvarchar con una longitud definida para optimizar índices
     @Column('nvarchar', { length: 255 })
     nombre: string;
+     
+    @Column('nvarchar', { length: 255, default: 'default-image.png' })
+    imagen: string;
 
     // Usamos nvarchar(max) en lugar de text para descripciones largas
     @Column('nvarchar', { length: 'max' })

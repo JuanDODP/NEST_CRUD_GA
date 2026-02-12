@@ -4,7 +4,8 @@ import { UpdateAreaDto } from './dto/update-area.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Area } from './entities/area.entity';
 import { Repository } from 'typeorm';
-
+import * as ExcelJS from 'exceljs';
+import { Response } from 'express';
 @Injectable()
 export class AreasService {
   private readonly logger = new Logger('AreasService');
@@ -95,6 +96,41 @@ export class AreasService {
       this.handleDBExceptions(error);
     }
   }
+
+  // descargarExcel
+  async exportToExcel(res: Response) {
+  // 1. Obtener todos los datos de SQL Server
+  const areas = await this.areasRepository.find();
+
+  // 2. Crear el libro y la hoja de Excel
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Areas');
+
+  // 3. Definir las columnas
+  worksheet.columns = [
+    { header: 'ID', key: 'id', width: 10 },
+    { header: 'Nombre', key: 'nombre', width: 30 },
+    { header: 'Descripción', key: 'description', width: 50 },
+  ];
+
+  // 4. Agregar las filas
+  worksheet.addRows(areas);
+
+  // 5. Configurar la respuesta para que el navegador descargue el archivo
+  res.setHeader(
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  );
+  res.setHeader(
+    'Content-Disposition',
+    'attachment; filename=' + 'areas_reporte.xlsx',
+  );
+
+  // 6. Escribir el archivo en el stream de respuesta
+  await workbook.xlsx.write(res);
+  res.end();
+}
+  // =============================================================================================================================
 
   private handleDBExceptions(error: any) {
     // --- CAMBIO PARA SQL SERVER ---

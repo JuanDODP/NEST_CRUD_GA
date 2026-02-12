@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Res } from '@nestjs/common';
 import { ProyectosService } from './proyectos.service';
 import { CreateProyectoDto } from './dto/create-proyecto.dto';
 import { UpdateProyectoDto } from './dto/update-proyecto.dto';
@@ -37,4 +37,9 @@ export class ProyectosController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.proyectosService.remove(id);
   }
+  // descargarExcel
+    @Get('export/excel')
+      async downloadExcel(@Res() res: any) {
+    return await this.proyectosService.exportToExcel(res);
+  } 
 }

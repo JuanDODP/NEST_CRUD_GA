@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Res } from '@nestjs/common';
 import { AreasService } from './areas.service';
 import { CreateAreaDto } from './dto/create-area.dto';
 import { UpdateAreaDto } from './dto/update-area.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
-
+import { Response as respuesta } from 'express'; // Asegúrate de que diga 'express'
 @Controller('areas')
 export class AreasController {
   constructor(private readonly areasService: AreasService) { }
@@ -35,4 +35,10 @@ export class AreasController {
   remove(@Param('id', ParseIntPipe) id: string) {
     return this.areasService.remove(+id);
   }
+
+  // Descargar excel 
+  @Get('export/excel')
+    async downloadExcel(@Res() res: any) {
+  return await this.areasService.exportToExcel(res);
+} 
 }

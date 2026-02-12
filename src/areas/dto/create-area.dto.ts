@@ -1,4 +1,4 @@
-import { IsString, MinLength } from "class-validator";
+import { IsOptional, IsString, MinLength } from "class-validator";
 
 
 export class CreateAreaDto {
@@ -9,4 +9,10 @@ export class CreateAreaDto {
    @IsString()
    @MinLength(1, { message: 'La descripción es requerida' })
    description: string;
+
+   @IsString()
+   // @MinLength(1, { message: 'La imagen es requerida' })
+   @IsOptional()
+   imagen?: string;
+
 }

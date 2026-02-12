@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Proyecto } from './entities/proyecto.entity';
 import { DataSource, Repository } from 'typeorm';
 import { AreasService } from '../areas/areas.service';
+import * as ExcelJS from 'exceljs';
+import { Response } from 'express';
 
 @Injectable()
 export class ProyectosService {
@@ -19,22 +21,22 @@ export class ProyectosService {
 
   async create(createProyectoDto: CreateProyectoDto) {
     const { idArea, ...proyectosData } = createProyectoDto;
-    
+
     // Buscamos el área
     const { area } = await this.areasService.findOne(idArea);
-    
+
     if (!area) {
       throw new NotFoundException(`Area with id ${idArea} not found`);
     }
 
     try {
-      const proyect = this.proyectosRepository.create({ 
-        ...proyectosData, 
-        area: area 
+      const proyect = this.proyectosRepository.create({
+        ...proyectosData,
+        area: area
       });
-      
+
       await this.proyectosRepository.save(proyect);
-      
+
       return {
         ok: true,
         proyect
@@ -46,8 +48,8 @@ export class ProyectosService {
 
   async findAll() {
     try {
-      const proyectos = await this.proyectosRepository.find({ 
-        relations: ['area'] 
+      const proyectos = await this.proyectosRepository.find({
+        relations: ['area']
       });
       return {
         ok: true,
@@ -91,7 +93,7 @@ export class ProyectosService {
     try {
       const proyectoActualizado = this.proyectosRepository.merge(proyectoExistente, datosActualizar);
       await this.proyectosRepository.save(proyectoActualizado);
-      
+
       return {
         ok: true,
         proyecto: proyectoActualizado
@@ -120,6 +122,97 @@ export class ProyectosService {
       this.handleDBExceptions(error);
     }
   }
+  // descargarExcel
+  // async exportToExcel(res: Response) {
+  //   // 1. Obtener todos los datos de SQL Server
+  //   const proyectos = await this.proyectosRepository.find();
+
+  //   // 2. Crear el libro y la hoja de Excel
+  //   const workbook = new ExcelJS.Workbook();
+  //   const worksheet = workbook.addWorksheet('Proyectos');
+
+  //   // 3. Definir las columnas
+  //   worksheet.columns = [
+  //     { header: 'ID', key: 'id', width: 10 },
+  //     { header: 'Nombre del Proyecto', key: 'nombreProyecto', width: 35 },
+  //     { header: 'Fecha de Inicio', key: 'fechaInicio', width: 20 },
+  //     { header: 'Fecha de Fin', key: 'fechaFin', width: 20 },
+  //     { header: 'Área Asignada', key: 'areaNombre', width: 25 }, // Nueva columna para el nombre del área
+  //     { header: 'Descripción del Área', key: 'areaDescription', width: 40 },
+  //   ];
+
+  //   // 4. Agregar las filas
+  //   worksheet.addRows(proyectos);
+
+  //   // 5. Configurar la respuesta para que el navegador descargue el archivo
+  //   res.setHeader(
+  //     'Content-Type',
+  //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  //   );
+  //   res.setHeader(
+  //     'Content-Disposition',
+  //     'attachment; filename=' + 'areas_reporte.xlsx',
+  //   );
+
+  //   // 6. Escribir el archivo en el stream de respuesta
+  //   await workbook.xlsx.write(res);
+  //   res.end();
+  // }
+
+  async exportToExcel(res: Response) {
+    // 1. Obtener los proyectos de SQL Server incluyendo la relación 'area'
+    // Es vital usar 'relations' para que el objeto 'area' no venga vacío
+    const proyectos = await this.proyectosRepository.find({
+      relations: ['area'],
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Reporte de Proyectos');
+
+    // 2. Definir las columnas exactamente como las quieres
+    worksheet.columns = [
+      { header: 'ID', key: 'id', width: 10 },
+      { header: 'Nombre del Proyecto', key: 'nombreProyecto', width: 35 },
+      { header: 'Fecha de Inicio', key: 'fechaInicio', width: 20 },
+      { header: 'Fecha de Fin', key: 'fechaFin', width: 20 },
+      { header: 'Área Asignada', key: 'areaNombre', width: 25 },
+      { header: 'Descripción del Área', key: 'areaDescription', width: 40 },
+    ];
+
+    // 3. Aplanar los datos (Flattening)
+    // Aquí transformamos el objeto anidado en propiedades planas
+    const rows = proyectos.map(proyecto => ({
+      id: proyecto.id,
+      nombreProyecto: proyecto.nombreProyecto,
+      fechaInicio: proyecto.fechaInicio,
+      fechaFin: proyecto.fechaFin,
+      // Usamos el operador ?. para evitar errores si 'area' es null
+      areaNombre: proyecto.area?.nombre || 'Sin Área',
+      areaDescription: proyecto.area?.description || 'N/A',
+    }));
+
+    // 4. Agregar las filas al archivo
+    worksheet.addRows(rows);
+
+    // 5. Estilo profesional: Poner los encabezados en negrita
+    worksheet.getRow(1).font = { bold: true };
+
+    // 6. Configuración de cabeceras para la descarga
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=Reporte_Proyectos_${Date.now()}.xlsx`,
+    );
+
+    // 7. Escribir y finalizar
+    await workbook.xlsx.write(res);
+    res.end();
+  }
+
+  // =============================================================================================================================
 
   private handleDBExceptions(error: any) {
     // CAMBIO PARA SQL SERVER: 2627 y 2601 son para llaves duplicadas (Unique)
