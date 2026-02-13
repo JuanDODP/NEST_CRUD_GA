@@ -23,9 +23,7 @@ export class ProyectosService {
 
   ) { }
 
-  async create(createProyectoDto: CreateProyectoDto, file: Express.Multer.File) {
-
-    if (!file) throw new BadRequestException('Imagen is required');
+  async create(createProyectoDto: CreateProyectoDto, file?: Express.Multer.File) {
     const { idArea, ...proyectosData } = createProyectoDto;
 
     // Buscamos el área
@@ -36,9 +34,14 @@ export class ProyectosService {
     }
 
     try {
+      // Definimos la imagen: si hay archivo usamos la URL, si no, una por defecto
+      const imagenUrl = file 
+        ? `${this.configService.get('HOST_API')}/files/proyectos/${file.filename}`
+        : `${this.configService.get('HOST_API')}/files/proyectos/default-project.png`;
+
       const proyect = this.proyectosRepository.create({
         ...proyectosData,
-        imagen: `${this.configService.get('HOST_API')}/files/proyectos/${file.filename}`, // Retornamos URL completa
+        imagen: imagenUrl,
         area: area
       });
 

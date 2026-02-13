@@ -10,23 +10,19 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class AreasService {
   private readonly logger = new Logger('AreasService');
-  private readonly configService: ConfigService;
   constructor(
     @InjectRepository(Area)
     private readonly areasRepository: Repository<Area>,
-    configService: ConfigService
+     private readonly configService: ConfigService,
   ) {
-    this.configService = configService;
   }
 
   async create(createAreaDto: CreateAreaDto, file: Express.Multer.File) {
-    console.log('================================');
-    console.log('EL file',{file})
-    console.log('================================');
+  const fileName = file ? file.filename : 'default-area.png';
     try {
       const area = this.areasRepository.create({
         ...createAreaDto,
-        imagen: file.filename // Guardamos solo el nombre
+        imagen: fileName // Guardamos solo el nombre
       });
 
       await this.areasRepository.save(area);
@@ -35,7 +31,9 @@ export class AreasService {
         ok: true,
         area: {
           ...area,
-          imagen: `${this.configService.get('HOST_API')}/files/areas/${file.filename}` // Retornamos URL completa
+         imagen: file 
+          ? `${this.configService.get('HOST_API')}/files/areas/${file.filename}` 
+          : `${this.configService.get('HOST_API')}/files/areas/default-area.png`
 
         }
       };
@@ -92,7 +90,6 @@ async update(id: number, updateAreaDto: UpdateAreaDto, file?: Express.Multer.Fil
       ok: true,
       area: {
         ...area,
-        imagen: `${this.configService.get('HOST_API')}/files/areas/${area.imagen}`
       }
     };
   } catch (error) {

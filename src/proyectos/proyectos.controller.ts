@@ -24,7 +24,7 @@ export class ProyectosController {
 
     @UploadedFile() file: Express.Multer.File) {
 
-    if (!file) throw new BadRequestException('Imagen is required');
+    // if (!file) throw new BadRequestException('Imagen is required');
     return this.proyectosService.create(createProyectoDto, file);
   }
 
@@ -41,7 +41,7 @@ export class ProyectosController {
   @Patch(':id')
   @Auth()
 
- @Patch(':id')
+  @Patch(':id')
   @Auth()
   @UseInterceptors(FileInterceptor('imagen', {
     fileFilter,
@@ -51,7 +51,7 @@ export class ProyectosController {
     })
   }))
   update(
-    @Param('id', ParseIntPipe) id: number, 
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateProyectoDto: UpdateProyectoDto,
     @UploadedFile() file?: Express.Multer.File // El archivo ahora es opcional en el update
   ) {

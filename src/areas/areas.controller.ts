@@ -22,9 +22,9 @@ export class AreasController {
   }))
 create(
   @Body() createAreaDto: CreateAreaDto,
-  @UploadedFile() file: Express.Multer.File
+ @UploadedFile() file: Express.Multer.File
 ) {
-  if (!file) throw new BadRequestException('Imagen is required');
+  //  if (!file) throw new BadRequestException('Imagen is required');
 
   return this.areasService.create(createAreaDto, file);
 }
