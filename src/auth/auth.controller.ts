@@ -1,19 +1,38 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseInterceptors, UploadedFile, } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-auth.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { User } from './entities/user.entity';
 import { Auth, GetUser } from './decorators';
-
+import { ValidRoles } from './interface/valid-roles';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { fileFilter, fileNamer } from './../utils/helpers'
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
-
+  // opcion de subir con imagen y sin imagen, para el caso de auth, no es necesario subir imagen, por lo que se deja sin imagen
+  @UseInterceptors(FileInterceptor('imagen', {
+    fileFilter,
+    storage: diskStorage({
+      destination: './static/users',
+      filename: fileNamer
+    })
+  }))
   @Post('register')
-  create(@Body() createAuthDto: CreateUserDto) {
-    return this.authService.create(createAuthDto);
+  create(@Body() createAuthDto: CreateUserDto,
+    @UploadedFile() file?: Express.Multer.File
+  ) {
+    return this.authService.create(createAuthDto, file);
+  }
+  @Auth(ValidRoles.ADMIN, ValidRoles.SUPER_USER)
+  @Post('create_user')
+  createUser(@Body() createAuthDto: CreateUserDto,
+    @GetUser() user: User
+  ) {
+    return this.authService.createUser(createAuthDto, user);
   }
   @Post('login')
   login(@Body() loginAuthDto: LoginUserDto) {
@@ -29,21 +48,30 @@ export class AuthController {
     return this.authService.findOne(id);
   }
   @Patch('users/:id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
-    return this.authService.update(id, updateUserDto)
+  @UseInterceptors(FileInterceptor('imagen', { // Usamos 'imagen' para coincidir con tu POST
+    fileFilter,
+    storage: diskStorage({
+      destination: './static/users',
+      filename: fileNamer
+    })
+  }))
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto
+    , @UploadedFile() file?: Express.Multer.File
+) {
+    return this.authService.update(id, updateUserDto, file);
   }
   @Delete('users/:id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.authService.remove(id)
   }
-// checar status
-@Get('check-status')
+  // checar status
+  @Get('check-status')
   @Auth()
   checkAuthStatus(
     @GetUser() user: User
   ) {
-    return this.authService.checkAuthStatus( user );
+    return this.authService.checkAuthStatus(user);
   }
-// ================================================
+  // ================================================
 
 }

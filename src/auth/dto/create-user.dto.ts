@@ -58,4 +58,10 @@ export class CreateUserDto {
     @IsOptional()
     @IsBoolean({ message: 'isActive debe ser un valor booleano' })
     isActive?: boolean;
+
+    @IsString()
+    // @MinLength(1, { message: 'La imagen es requerida' })
+    @IsOptional()
+    imagen?: string;
+
 }

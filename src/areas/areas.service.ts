@@ -79,7 +79,7 @@ async update(id: number, updateAreaDto: UpdateAreaDto, file?: Express.Multer.Fil
 
   // 2. Si el usuario subió una nueva imagen, actualizamos el nombre del archivo
    if (file) {
-      area.imagen = `${this.configService.get('HOST_API')}/files/areas/${file.filename}`;
+      area.imagen = file.filename;
     }
 
   try {
@@ -90,6 +90,11 @@ async update(id: number, updateAreaDto: UpdateAreaDto, file?: Express.Multer.Fil
       ok: true,
       area: {
         ...area,
+        imagen: file 
+          ? `${this.configService.get('HOST_API')}/files/areas/${file.filename}` 
+          : area.imagen.startsWith('http') 
+            ? area.imagen 
+            : `${this.configService.get('HOST_API')}/files/areas/${area.imagen}`
       }
     };
   } catch (error) {

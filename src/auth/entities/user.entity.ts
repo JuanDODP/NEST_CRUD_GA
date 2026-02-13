@@ -57,6 +57,7 @@ import {
     PrimaryGeneratedColumn,
     CreateDateColumn,
     OneToMany,
+    AfterLoad,
 } from "typeorm";
 
 @Entity('users')
@@ -73,7 +74,7 @@ export class User {
     email: string;
 
     // Usamos nvarchar(max) en lugar de text, que está deprecado
-    @Column('nvarchar', { length: 'max', select: false }) 
+    @Column('nvarchar', { length: 'max', select: false })
     password: string;
 
     // SQL Server usa el tipo 'bit' para booleanos (0 o 1)
@@ -83,7 +84,9 @@ export class User {
     // IMPORTANTE: SQL Server NO soporta arreglos. 
     // Lo manejaremos como un string simple (ej: "user" o "admin,user")
     @Column('nvarchar', { length: 255, default: 'user' })
-    rol: string; 
+    rol: string;
+    @Column('nvarchar', { length: 255, default: 'default-avatar-user.jpg' })
+    imagen: string;
 
     // 'timestamp' en SQL Server no es para fechas, se usa 'datetime2'
     @CreateDateColumn({ type: 'datetime2' })
@@ -100,5 +103,14 @@ export class User {
     @BeforeUpdate()
     checkEmailUpdate() {
         this.normalizeEmail();
+    }
+    @AfterLoad()
+    updateImageUrl() {
+        // Solo si la imagen no es ya una URL completa (para evitar duplicar el host)
+        if (this.imagen && !this.imagen.startsWith('http')) {
+            // Nota: Aquí podrías usar una variable de entorno, 
+            // pero para pruebas rápidas lo dejamos así o usamos el servicio.
+            this.imagen = `http://localhost:3000/api/files/users/${this.imagen}`;
+        }
     }
 }

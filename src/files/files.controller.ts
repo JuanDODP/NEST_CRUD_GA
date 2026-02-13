@@ -28,15 +28,15 @@ export class FilesController {
      res.sendFile(path);
      return path ; 
   }
-  // @Get('proyectos/:imageName')
-  // findProjectImage(@Res() res:any,
-  //  @Param('imageName') imageName: string,  ) {
-  //   const path = this.filesService.getStaticProjectImage(imageName, 'proyectos');
-  //   // res.status(403).json({ok:false, path})
-  //    // colocar url de la imagen
-  //   // const secureUrl = `${this.configService.get('HOST_API')}/files/product/${file.filename}`;
-  //    res.sendFile(path);
-  //    return path ; 
-  // }
+   @Get('users/:imageName')
+   findUserImage(@Res() res:any,
+    @Param('imageName') imageName: string,  ) {
+     const path = this.filesService.getStaticProjectImage(imageName, 'users');
+     // res.status(403).json({ok:false, path})
+      // colocar url de la imagen
+     // const secureUrl = `${this.configService.get('HOST_API')}/files/product/${file.filename}`;
+      res.sendFile(path);
+      return path ; 
+   }
  
 }

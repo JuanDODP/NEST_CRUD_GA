@@ -218,16 +218,20 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { User } from './entities/user.entity';
 import { JwtPayload } from './interface/jwt.interface.payload';
 import { UpdateUserDto } from './dto/update-auth.dto';
-
+import { ConfigService } from '@nestjs/config';
+import * as fs from 'fs';
+import { join } from 'path';
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+
   ) { }
 
-  async create(createAuthDto: CreateUserDto) {
+  async create(createAuthDto: CreateUserDto, file?: Express.Multer.File) {
     try {
       const { password, rol, ...userData } = createAuthDto;
 
@@ -236,19 +240,44 @@ export class AuthService {
         // SQL Server: Convertimos el arreglo de roles a string separado por comas
         rol: Array.isArray(rol) ? rol.join(',') : rol,
         password: bcrypt.hashSync(password, 10),
+        imagen: file ? file.filename : 'default-avatar-user.jpg' // Si no se sube imagen, asignamos una por defecto
       });
 
       await this.userRepository.save(user);
 
       const { password: _, ...userRest } = user;
       return {
-        user: userRest,
+        user: { ...userRest, imagen: `${this.configService.get('HOST_API')}/files/users/${userRest.imagen}` },
         token: await this.getJwtToken({ id: user.id }),
       };
     } catch (error) {
       this.handleDBErrors(error);
     }
   }
+
+  // Crear usuario por otro usuario administrador
+  async createUser(createAuthDto: CreateUserDto, user: User) {
+    try {
+      const { password, rol, ...userData } = createAuthDto;
+
+      const newUser = this.userRepository.create({
+        ...userData,
+        rol: Array.isArray(rol) ? rol.join(',') : rol,
+        password: bcrypt.hashSync(password, 10),
+      });
+
+      await this.userRepository.save(newUser);
+
+      const { password: _, ...userRest } = newUser;
+      return {
+        user: userRest,
+        token: await this.getJwtToken({ id: newUser.id }),
+      };
+    } catch (error) {
+      this.handleDBErrors(error);
+    }
+  }
+  // ======================================================================================================================================
 
   async login(loginAuthDto: LoginUserDto) {
     const { email, password } = loginAuthDto;
@@ -281,7 +310,7 @@ export class AuthService {
     try {
       const usuarios = await this.userRepository.find({
         where: { isActive: true },
-        select: { id: true, email: true, name: true, rol: true }
+        select: { id: true, email: true, name: true, rol: true, imagen: true }
       });
       return {
         ok: true,
@@ -311,51 +340,61 @@ export class AuthService {
       usuarios: usuario
     };
   }
-async update(id: number, updateUserDto: UpdateUserDto) {
-  // 1. Obtenemos el usuario (esto retorna { ok: true, usuarios: User })
+async update(id: number, updateUserDto: UpdateUserDto, file?: Express.Multer.File) {
   const { usuarios } = await this.findOne(id);
 
   try {
-    // 2. Encriptamos password si viene
     if (updateUserDto.password) {
       updateUserDto.password = bcrypt.hashSync(updateUserDto.password, 10);
     }
 
-    // 3. Preparamos los datos para la entidad
-    // Extraemos el rol para tratarlo por separado
     const { rol, ...restOfDto } = updateUserDto;
 
-    // 4. Creamos un objeto que sí sea compatible con la entidad User
     const userDataToUpdate = {
       ...restOfDto,
-      // Si viene el rol como arreglo ['admin'], lo convertimos a "admin"
-      // Si no viene, dejamos el que ya tenía la entidad
-      rol: (rol && Array.isArray(rol)) ? rol.join(',') : (usuarios.rol as any)
+      rol: (rol && Array.isArray(rol)) ? rol.join(',') : usuarios.rol
     };
 
-    // 5. Ahora el merge ya no dará error porque userDataToUpdate tiene 'rol' como string
     const userToUpdate = this.userRepository.merge(usuarios, userDataToUpdate as any);
 
-    const updatedUser = await this.userRepository.save(userToUpdate);
+    // LOGICA DE IMAGEN
+    if (file) {
+      // 1. Si el usuario ya tenía una imagen, la borramos de la carpeta
+      if (usuarios.imagen && usuarios.imagen !== 'default-user.png') {
+        const path = join(__dirname, '../../static/users', usuarios.imagen);
+        console.log('EL PATH DE LA IMAGEN ES:', path);
+        if (fs.existsSync(path)) {
+          fs.unlinkSync(path); // Borra el archivo físicamente
+        }
+      }
 
+      // 2. Guardamos SOLO el nombre del archivo (no la URL completa)
+      userToUpdate.imagen = file.filename; 
+    }
+
+    const updatedUser = await this.userRepository.save(userToUpdate);
     const { password, ...userRest } = updatedUser;
 
     return {
       ok: true,
-      usuario: userRest,
+      usuario: {
+        ...userRest,
+        // Construimos la URL solo para la respuesta, no para la DB
+
+        imagen: file ? `${this.configService.get('HOST_API')}/files/users/${updatedUser.imagen}` : `${this.configService.get('HOST_API')}/files/users/${usuarios.imagen}`
+      },
     };
 
   } catch (error) {
     this.handleDBErrors(error);
   }
 }
-
   async remove(id: number) {
     const { usuarios } = await this.findOne(id);
-    
+
     usuarios.isActive = false;
     await this.userRepository.save(usuarios);
-    
+
     return {
       ok: true,
       message: `user with id ${id} has been removed`

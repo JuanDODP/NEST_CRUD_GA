@@ -35,7 +35,7 @@ export class ProyectosService {
 
     try {
       // Definimos la imagen: si hay archivo usamos la URL, si no, una por defecto
-      const imagenUrl = file 
+      const imagenUrl = file
         ? `${this.configService.get('HOST_API')}/files/proyectos/${file.filename}`
         : `${this.configService.get('HOST_API')}/files/proyectos/default-project.png`;
 
@@ -86,7 +86,7 @@ export class ProyectosService {
     };
   }
 
-async update(id: number, updateProyectoDto: UpdateProyectoDto, file?: Express.Multer.File) {
+  async update(id: number, updateProyectoDto: UpdateProyectoDto, file?: Express.Multer.File) {
     // 1. Buscamos el proyecto existente
     const { proyecto: proyectoExistente } = await this.findOne(id);
 
@@ -101,18 +101,27 @@ async update(id: number, updateProyectoDto: UpdateProyectoDto, file?: Express.Mu
 
     // 3. Si subieron una nueva imagen, actualizamos la URL
     if (file) {
-      proyectoExistente.imagen = `${this.configService.get('HOST_API')}/files/proyectos/${file.filename}`;
+      proyectoExistente.imagen = file.filename;
     }
 
     try {
       // 4. Fusionamos los cambios de texto (título, precio, etc.)
       const proyectoActualizado = this.proyectosRepository.merge(proyectoExistente, datosActualizar);
-      
+
       await this.proyectosRepository.save(proyectoActualizado);
 
       return {
         ok: true,
-        proyecto: proyectoActualizado
+        proyecto: {
+          ...proyectoActualizado,
+
+
+          imagen: file
+            ? `${this.configService.get('HOST_API')}/files/proyectos/${file.filename}`
+            : proyectoExistente.imagen.startsWith('http')
+              ? proyectoExistente.imagen
+              : `${this.configService.get('HOST_API')}/files/proyectos/${proyectoExistente.imagen}`
+        },
       };
     } catch (error) {
       this.handleDBExceptions(error);
