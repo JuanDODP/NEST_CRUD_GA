@@ -6,6 +6,7 @@ import { Asignacion } from './entities/asignacione.entity';
 import { DataSource, Repository } from 'typeorm';
 import { ProyectosService } from 'src/proyectos/proyectos.service';
 import { AuthService } from '../auth/auth.service';
+const PDFDocument = require('pdfkit');
 
 @Injectable()
 export class AsignacionesService {
@@ -17,11 +18,11 @@ export class AsignacionesService {
     private proyectosService: ProyectosService,
     private authService: AuthService,
     private readonly dataSource: DataSource
-  ) {}
+  ) { }
 
   async create(createAsignacioneDto: CreateAsignacioneDto) {
     const { idProyecto, idUser, ...asignacionesData } = createAsignacioneDto;
-    
+
     // Buscamos las entidades relacionadas
     const { proyecto } = await this.proyectosService.findOne(idProyecto);
     const { usuarios: usuario } = await this.authService.findOne(idUser);
@@ -35,9 +36,9 @@ export class AsignacionesService {
         proyecto,
         usuario
       });
-      
+
       await this.asignacionesRepository.save(asignacion);
-      
+
       return {
         ok: true,
         asignacion
@@ -147,6 +148,44 @@ export class AsignacionesService {
     }
   }
 
+  // generar pdf
+
+  async generatePdf(id: number): Promise<Buffer> {
+    const asignacion = await this.asignacionesRepository.findOne({
+      where: { id },
+      relations: ['usuario', 'proyecto', 'proyecto.area'],
+    });
+
+    if (!asignacion) {
+      throw new NotFoundException(`Asignacion with id ${id} not found`);
+    }
+
+    const doc = new PDFDocument();
+    const chunks: Buffer[] = [];
+
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+
+    doc.fontSize(20).text('DETALLES DE ASIGNACIÓN', {
+      align: 'center',
+    });
+
+    doc.moveDown();
+
+    doc.fontSize(12);
+    doc.text(`Folio: ${asignacion.id}`);
+    doc.text(`Proyecto: ${asignacion.proyecto?.nombreProyecto || 'N/A'}`);
+    doc.text(`Usuario: ${asignacion.usuario?.name || 'N/A'}`);
+    doc.text(`Fecha: ${asignacion.fechaAsignacion}`);
+    doc.text(`Área: ${asignacion.proyecto?.area?.nombre || 'N/A'}`);
+
+    doc.end();
+
+    return await new Promise<Buffer>((resolve, reject) => {
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', (err) => reject(err));
+    });
+  }
+
   private handleDBExceptions(error: any) {
     // Cambiamos 'error.code' (Postgres) por 'error.number' (SQL Server)
     // 2627 y 2601: Violación de restricción Unique
@@ -156,7 +195,7 @@ export class AsignacionesService {
 
     // 547: Violación de Foreign Key (Conflictos de referencia)
     if (error.number === 547) {
-        throw new BadRequestException(`Database relation error: ${error.message}`);
+      throw new BadRequestException(`Database relation error: ${error.message}`);
     }
 
     this.logger.error(error);
