@@ -18,7 +18,7 @@ export class AreasService {
   }
 
   async create(createAreaDto: CreateAreaDto, file: Express.Multer.File) {
-  const fileName = file ? file.filename : 'default-area.png';
+  const fileName = file ? file.filename : '59550600-41e9-4fa1-9718-a1b4c85c85a9.png';
     try {
       const area = this.areasRepository.create({
         ...createAreaDto,
@@ -33,7 +33,7 @@ export class AreasService {
           ...area,
          imagen: file 
           ? `${this.configService.get('HOST_API')}/files/areas/${file.filename}` 
-          : `${this.configService.get('HOST_API')}/files/areas/default-area.png`
+          : `${this.configService.get('HOST_API')}/files/areas/59550600-41e9-4fa1-9718-a1b4c85c85a9.png`
 
         }
       };
@@ -78,9 +78,9 @@ async update(id: number, updateAreaDto: UpdateAreaDto, file?: Express.Multer.Fil
   if (!area) throw new NotFoundException(`Area with id ${id} not found`);
 
   // 2. Si el usuario subió una nueva imagen, actualizamos el nombre del archivo
-  if (file) {
-    area.imagen = file.filename;
-  }
+   if (file) {
+      area.imagen = `${this.configService.get('HOST_API')}/files/areas/${file.filename}`;
+    }
 
   try {
     await this.areasRepository.save(area);
