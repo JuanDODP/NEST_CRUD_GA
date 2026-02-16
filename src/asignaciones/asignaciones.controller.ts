@@ -5,6 +5,8 @@ import { UpdateAsignacioneDto } from './dto/update-asignacione.dto';
 import { Auth } from 'src/auth/decorators';
 import { Res } from '@nestjs/common';
 import { Response } from 'express';
+import { ApiTags } from '@nestjs/swagger';
+@ApiTags('asignaciones')
 @Controller('asignaciones')
 export class AsignacionesController {
   constructor(private readonly asignacionesService: AsignacionesService) { }

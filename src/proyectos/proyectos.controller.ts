@@ -6,7 +6,8 @@ import { Auth } from 'src/auth/decorators';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { fileNamer, fileFilter } from './../utils/helpers'
-
+import { ApiTags } from '@nestjs/swagger';
+@ApiTags('proyectos')
 @Controller('proyectos')
 export class ProyectosController {
   constructor(private readonly proyectosService: ProyectosService) { }
