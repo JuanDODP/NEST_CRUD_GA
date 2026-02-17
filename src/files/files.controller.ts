@@ -2,43 +2,55 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/
 import { FilesService } from './files.service';
 import { CreateFileDto } from './dto/create-file.dto';
 import { UpdateFileDto } from './dto/update-file.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('files')
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
-    // Obtener imagen de proyectos
+  @ApiOperation({ summary: 'Obtener imagen de un proyecto' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Devuelve el archivo de imagen del proyecto',
+    content: { 'image/png': {}, 'image/jpeg': {} } 
+  })
   @Get('proyectos/:imageName')
-  findProjectImage(@Res() res:any,
-   @Param('imageName') imageName: string,  ) {
+  findProjectImage(
+    @Res() res: any,
+    @Param('imageName') imageName: string,
+  ) {
     const path = this.filesService.getStaticProjectImage(imageName, 'proyectos');
-    // res.status(403).json({ok:false, path})
-     // colocar url de la imagen
-    // const secureUrl = `${this.configService.get('HOST_API')}/files/product/${file.filename}`;
-     res.sendFile(path);
-     return path ; 
+    res.sendFile(path);
   }
+
+  @ApiOperation({ summary: 'Obtener imagen de un área' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Devuelve el archivo de imagen del área',
+    content: { 'image/png': {}, 'image/jpeg': {} } 
+  })
   @Get('areas/:imageName')
-  findAreaImage(@Res() res:any,
-   @Param('imageName') imageName: string,  ) {
+  findAreaImage(
+    @Res() res: any,
+    @Param('imageName') imageName: string,
+  ) {
     const path = this.filesService.getStaticProjectImage(imageName, 'areas');
-    // res.status(403).json({ok:false, path})
-     // colocar url de la imagen
-    // const secureUrl = `${this.configService.get('HOST_API')}/files/product/${file.filename}`;
-     res.sendFile(path);
-     return path ; 
+    res.sendFile(path);
   }
-   @Get('users/:imageName')
-   findUserImage(@Res() res:any,
-    @Param('imageName') imageName: string,  ) {
-     const path = this.filesService.getStaticProjectImage(imageName, 'users');
-     // res.status(403).json({ok:false, path})
-      // colocar url de la imagen
-     // const secureUrl = `${this.configService.get('HOST_API')}/files/product/${file.filename}`;
-      res.sendFile(path);
-      return path ; 
-   }
- 
+
+  @ApiOperation({ summary: 'Obtener imagen de un usuario' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Devuelve el archivo de imagen de perfil del usuario',
+    content: { 'image/png': {}, 'image/jpeg': {} } 
+  })
+  @Get('users/:imageName')
+  findUserImage(
+    @Res() res: any,
+    @Param('imageName') imageName: string,
+  ) {
+    const path = this.filesService.getStaticProjectImage(imageName, 'users');
+    res.sendFile(path);
+  }
 }

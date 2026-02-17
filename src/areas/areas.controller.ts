@@ -6,66 +6,89 @@ import { Auth } from '../auth/decorators/auth.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileFilter, fileNamer } from './helpers';
 import { diskStorage } from 'multer';
-import { ApiTags } from '@nestjs/swagger';
-// @ApiTags('areas')
+import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Area } from './entities/area.entity';
+
+@ApiTags('areas')
 @Controller('areas')
 export class AreasController {
   constructor(private readonly areasService: AreasService) { }
 
-@Post()
-@Auth()
-  @UseInterceptors(FileInterceptor('imagen', {    
+  @Post()
+  @Auth()
+  @ApiOperation({ summary: 'Crear una nueva área con imagen' })
+  @ApiConsumes('multipart/form-data')
+  @ApiResponse({ status: 201, description: 'Área creada con éxito.', type: Area })
+  @ApiResponse({ status: 400, description: 'Faltan datos o formato de archivo inválido.' })
+  @UseInterceptors(FileInterceptor('imagen', {
     fileFilter,
-    storage:diskStorage({ 
-      destination:'./static/areas',
-       filename:fileNamer
+    storage: diskStorage({
+      destination: './static/areas',
+      filename: fileNamer
     })
   }))
-create(
-  @Body() createAreaDto: CreateAreaDto,
- @UploadedFile() file: Express.Multer.File
-) {
-  //  if (!file) throw new BadRequestException('Imagen is required');
+  create(
+    @Body() createAreaDto: CreateAreaDto,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    return this.areasService.create(createAreaDto, file);
+  }
 
-  return this.areasService.create(createAreaDto, file);
-}
-              
   @Get()
+  @ApiOperation({ summary: 'Obtener lista de todas las áreas' })
+  @ApiResponse({ status: 200, type: [Area] })
   findAll() {
     return this.areasService.findAll();
   }
-  
+
   @Get(':id')
+  @ApiOperation({ summary: 'Obtener un área por su ID' })
+  @ApiResponse({ status: 200, type: Area })
+  @ApiResponse({ status: 404, description: 'Área no encontrada.' })
   findOne(@Param('id', ParseIntPipe) id: string) {
     return this.areasService.findOne(+id);
   }
 
- @Patch(':id')
-@Auth()
-@UseInterceptors(FileInterceptor('imagen', { // Usamos 'imagen' para coincidir con tu POST
-  fileFilter,
-  storage: diskStorage({ 
-    destination: './static/areas',
-    filename: fileNamer
-  })
-}))
-update(
-  @Param('id', ParseIntPipe) id: string, 
-  @Body() updateAreaDto: UpdateAreaDto,
-  @UploadedFile() file: Express.Multer.File // El archivo es opcional aquí
-) {
-  return this.areasService.update(+id, updateAreaDto, file);
-}
+  @Patch(':id')
+  @Auth()
+  @ApiOperation({ summary: 'Actualizar área e imagen por ID' })
+  @ApiConsumes('multipart/form-data')
+  @ApiResponse({ status: 200, description: 'Área actualizada.', type: Area })
+  @ApiResponse({ status: 404, description: 'Área no encontrada.' })
+
+  @UseInterceptors(FileInterceptor('imagen', {
+    fileFilter,
+    storage: diskStorage({
+      destination: './static/areas',
+      filename: fileNamer
+    })
+  }))
+  update(
+    @Param('id', ParseIntPipe) id: string,
+    @Body() updateAreaDto: UpdateAreaDto,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    return this.areasService.update(+id, updateAreaDto, file);
+  }
 
   @Delete(':id')
   @Auth()
+  @ApiOperation({ summary: 'Eliminar un área' })
+  @ApiResponse({ status: 200, description: 'Área eliminada correctamente.' })
+  @ApiResponse({ status: 404, description: 'Área no encontrada.' })
+  @ApiResponse({ status: 400, description: 'No se puede eliminar el área porque tiene registros relacionados (proyectos).' })
   remove(@Param('id', ParseIntPipe) id: string) {
     return this.areasService.remove(+id);
   }
 
-  // Descargar excel 
   @Get('export/excel')
-    async downloadExcel(@Res() res: any) {
-  return await this.areasService.exportToExcel(res);
-} 
+  @ApiOperation({ summary: 'Exportar áreas a un archivo Excel' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Archivo Excel generado',
+    content: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {} }
+  })
+  async downloadExcel(@Res() res: any) {
+    return await this.areasService.exportToExcel(res);
+  }
 }

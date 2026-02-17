@@ -9,7 +9,7 @@ import { ValidRoles } from './interface/valid-roles';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { fileFilter, fileNamer } from './../utils/helpers'
-import { ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -23,6 +23,9 @@ export class AuthController {
     })
   }))
   @Post('register')
+  @ApiResponse({ status: 201, description: 'The user has been successfully created.', type: User })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
   create(@Body() createAuthDto: CreateUserDto,
     @UploadedFile() file?: Express.Multer.File
   ) {

@@ -6,13 +6,18 @@ import { Auth } from 'src/auth/decorators';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { fileNamer, fileFilter } from './../utils/helpers'
-import { ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Proyecto } from './entities/proyecto.entity';
 @ApiTags('proyectos')
 @Controller('proyectos')
 export class ProyectosController {
   constructor(private readonly proyectosService: ProyectosService) { }
 
   @Post()
+  @ApiTags('proyectos')
+  @ApiResponse({ status: 201, description: 'The proyecto has been successfully created.', type: Proyecto })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @Auth()
   @UseInterceptors(FileInterceptor('imagen', {
     fileFilter,

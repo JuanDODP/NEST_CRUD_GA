@@ -59,39 +59,50 @@ import {
     OneToMany,
     AfterLoad,
 } from "typeorm";
+import { ApiProperty } from "@nestjs/swagger";
 
 @Entity('users')
 export class User {
 
+    @ApiProperty({ example: 2015, description: 'Identificador único del usuario' })
     @PrimaryGeneratedColumn('increment')
     id: number;
 
-    // En SQL Server usamos nvarchar para soporte Unicode (acentos, ñ)
+    @ApiProperty({ example: 'testetete', description: 'Nombre completo del usuario' })
     @Column('nvarchar', { length: 255 })
     name: string;
 
+    @ApiProperty({ example: 'testzarezzgisterw@example.com', description: 'Correo electrónico único' })
     @Column('nvarchar', { length: 255, unique: true })
     email: string;
 
-    // Usamos nvarchar(max) en lugar de text, que está deprecado
+    @ApiProperty({ description: 'Contraseña del usuario (oculta en las consultas)', writeOnly: true })
     @Column('nvarchar', { length: 'max', select: false })
     password: string;
 
-    // SQL Server usa el tipo 'bit' para booleanos (0 o 1)
+    @ApiProperty({ example: true, description: 'Estado de la cuenta del usuario' })
     @Column('bit', { default: true })
     isActive: boolean;
 
-    // IMPORTANTE: SQL Server NO soporta arreglos. 
-    // Lo manejaremos como un string simple (ej: "user" o "admin,user")
+    @ApiProperty({ example: 'user', description: 'Rol asignado al usuario' })
     @Column('nvarchar', { length: 255, default: 'user' })
     rol: string;
+
+    @ApiProperty({ 
+        example: 'default-avatar-user.jpg', 
+        description: 'Nombre del archivo de imagen de perfil' 
+    })
     @Column('nvarchar', { length: 255, default: 'default-avatar-user.jpg' })
     imagen: string;
 
-    // 'timestamp' en SQL Server no es para fechas, se usa 'datetime2'
+    @ApiProperty({ 
+        example: '2026-02-17T08:56:19.873Z', 
+        description: 'Fecha y hora de registro en la plataforma' 
+    })
     @CreateDateColumn({ type: 'datetime2' })
     fechaRegistro: Date;
 
+    @ApiProperty({ type: () => [Asignacion], description: 'Lista de asignaciones del usuario' })
     @OneToMany(() => Asignacion, (asignacion) => asignacion.usuario)
     asignaciones: Asignacion[];
 
@@ -104,12 +115,10 @@ export class User {
     checkEmailUpdate() {
         this.normalizeEmail();
     }
+
     @AfterLoad()
     updateImageUrl() {
-        // Solo si la imagen no es ya una URL completa (para evitar duplicar el host)
         if (this.imagen && !this.imagen.startsWith('http')) {
-            // Nota: Aquí podrías usar una variable de entorno, 
-            // pero para pruebas rápidas lo dejamos así o usamos el servicio.
             this.imagen = `http://localhost:3000/api/files/users/${this.imagen}`;
         }
     }

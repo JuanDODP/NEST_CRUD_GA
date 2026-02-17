@@ -24,13 +24,20 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 import { Proyecto } from '../../proyectos/entities/proyecto.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('asignaciones')
 export class Asignacion {
+  @ApiProperty({ example: 1, description: 'Identificador único de la asignación', uniqueItems: true })
+  
   @PrimaryGeneratedColumn('increment')
   id: number;
 
   // En SQL Server usamos 'datetime2' para mayor precisión y compatibilidad
+  @ApiProperty({ 
+    example: '2026-02-20T06:00:00.000Z', 
+    description: 'Fecha de asignación en formato ISO8601' 
+  })
   @Column({ type: 'datetime2' })
   fechaAsignacion: string;
 

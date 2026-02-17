@@ -23,36 +23,49 @@
 //     // Un proyecto tiene muchas asignaciones
 //   @OneToMany(() => Asignacion, (asignacion) => asignacion.proyecto)
 //   asignaciones: Asignacion[];
-// }
+// }import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, JoinColumn, OneToMany, AfterLoad } from "typeorm";
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, JoinColumn, OneToMany, AfterLoad } from "typeorm";
 import { Area } from '../../areas/entities/area.entity';
 import { Asignacion } from "src/asignaciones/entities/asignacione.entity";
+import { ApiProperty } from "@nestjs/swagger";
 
 @Entity('proyectos')
 export class Proyecto {
+    @ApiProperty({ example: 1, description: 'Identificador único del proyecto', uniqueItems: true })
     @PrimaryGeneratedColumn('increment')
     id: number;
 
-    // Usamos nvarchar(255) para el nombre del proyecto
+    @ApiProperty({ example: 'kzjkzx', description: 'Nombre del proyecto' })
     @Column('nvarchar', { length: 255 })
     nombreProyecto: string;
 
-    // En SQL Server, 'date' funciona, pero 'datetime2' es más preciso 
-    // y evita errores de conversión de strings ISO a fecha.
+    @ApiProperty({ 
+        example: '2026-02-20T06:00:00.000Z', 
+        description: 'Fecha de inicio del proyecto en formato ISO8601' 
+    })
     @Column({ type: 'datetime2' })
     fechaInicio: string;
 
+    @ApiProperty({ 
+        example: '2026-03-07T06:00:00.000Z', 
+        description: 'Fecha estimada de finalización' 
+    })
     @Column({ type: 'datetime2' })
     fechaFin: string;
 
-    // Relación ManyToOne: Se mantiene la lógica, TypeORM creará un 
-    // campo areaId de tipo INT para SQL Server.
+    @ApiProperty({ 
+        example: '906bbda0-40e4-405d-8ef7-5d8b35490a47.png', 
+        description: 'Nombre del archivo de imagen o UUID guardado en el servidor' 
+    })
     @Column('nvarchar', { length: 255, default: 'default-image.png' })
     imagen: string;
+
+    @ApiProperty({ type: () => Area, description: 'Información del área a la que pertenece el proyecto' })
     @ManyToOne(() => Area, (area) => area.proyectos)
     @JoinColumn({ name: 'areaId' })
     area: Area;
 
+    @ApiProperty({ type: () => [Asignacion], description: 'Lista de asignaciones asociadas a este proyecto' })
     @OneToMany(() => Asignacion, (asignacion) => asignacion.proyecto)
     asignaciones: Asignacion[];
 

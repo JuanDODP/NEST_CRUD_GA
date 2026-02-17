@@ -5,13 +5,18 @@ import { UpdateAsignacioneDto } from './dto/update-asignacione.dto';
 import { Auth } from 'src/auth/decorators';
 import { Res } from '@nestjs/common';
 import { Response } from 'express';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Asignacion } from './entities/asignacione.entity';
 @ApiTags('asignaciones')
 @Controller('asignaciones')
 export class AsignacionesController {
   constructor(private readonly asignacionesService: AsignacionesService) { }
 
   @Post()
+  @ApiTags('asignaciones')
+  @ApiResponse({ status: 201, description: 'The asignacion has been successfully created.', type: Asignacion })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @Auth()
   create(@Body() createAsignacioneDto: CreateAsignacioneDto) {
     return this.asignacionesService.create(createAsignacioneDto);

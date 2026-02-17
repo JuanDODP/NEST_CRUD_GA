@@ -19,24 +19,31 @@
 
 import { AfterLoad, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Proyecto } from '../../proyectos/entities/proyecto.entity';
+import { ApiProperty } from "@nestjs/swagger";
 
 @Entity('areas')
 export class Area {
+    @ApiProperty({ example: 1, description: 'Identificador único del área', uniqueItems: true })
     @PrimaryGeneratedColumn('increment')
     id: number;
 
     // Usamos nvarchar con una longitud definida para optimizar índices
+    @ApiProperty({ example: 'Marketing', description: 'Nombre del área',})
     @Column('nvarchar', { length: 255 })
     nombre: string;
 
+    @ApiProperty({ example: 'default-image.png', description: 'Nombre del archivo de imagen del área' })
     @Column('nvarchar', { length: 255, default: 'default-image.png' })
     imagen: string;
-
-    // Usamos nvarchar(max) en lugar de text para descripciones largas
+    @ApiProperty({ example: 'Area especializada en publicidad', description: 'Descripción detallada del área' })
     @Column('nvarchar', { length: 'max' })
     description: string;
 
+    // Usamos nvarchar(max) en lugar de text para descripciones largas
+   
+
     // La relación se mantiene igual, TypeORM gestiona la FK en SQL Server
+    //  @ApiProperty({ type: () => [Proyecto], description: 'Lista de proyectos asociados a esta área' })
     @OneToMany(() => Proyecto, (proyecto) => proyecto.area)
     proyectos: Proyecto[];
 
