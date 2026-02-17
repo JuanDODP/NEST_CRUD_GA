@@ -20,6 +20,7 @@ export class AreasController {
   @ApiConsumes('multipart/form-data')
   @ApiResponse({ status: 201, description: 'Área creada con éxito.', type: Area })
   @ApiResponse({ status: 400, description: 'Faltan datos o formato de archivo inválido.' })
+  @ApiResponse({ status: 401, description: 'No autorizado.' })
   @UseInterceptors(FileInterceptor('imagen', {
     fileFilter,
     storage: diskStorage({
@@ -44,7 +45,9 @@ export class AreasController {
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un área por su ID' })
   @ApiResponse({ status: 200, type: Area })
+
   @ApiResponse({ status: 404, description: 'Área no encontrada.' })
+
   findOne(@Param('id', ParseIntPipe) id: string) {
     return this.areasService.findOne(+id);
   }
@@ -54,6 +57,8 @@ export class AreasController {
   @ApiOperation({ summary: 'Actualizar área e imagen por ID' })
   @ApiConsumes('multipart/form-data')
   @ApiResponse({ status: 200, description: 'Área actualizada.', type: Area })
+  @ApiResponse({ status: 401, description: 'No autorizado.' })
+
   @ApiResponse({ status: 404, description: 'Área no encontrada.' })
 
   @UseInterceptors(FileInterceptor('imagen', {
@@ -75,8 +80,10 @@ export class AreasController {
   @Auth()
   @ApiOperation({ summary: 'Eliminar un área' })
   @ApiResponse({ status: 200, description: 'Área eliminada correctamente.' })
-  @ApiResponse({ status: 404, description: 'Área no encontrada.' })
   @ApiResponse({ status: 400, description: 'No se puede eliminar el área porque tiene registros relacionados (proyectos).' })
+  @ApiResponse({ status: 401, description: 'No autorizado.' })
+
+  @ApiResponse({ status: 404, description: 'Área no encontrada.' })
   remove(@Param('id', ParseIntPipe) id: string) {
     return this.areasService.remove(+id);
   }

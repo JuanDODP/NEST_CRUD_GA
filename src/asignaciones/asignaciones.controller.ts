@@ -1,61 +1,78 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Res } from '@nestjs/common';
 import { AsignacionesService } from './asignaciones.service';
 import { CreateAsignacioneDto } from './dto/create-asignacione.dto';
 import { UpdateAsignacioneDto } from './dto/update-asignacione.dto';
 import { Auth } from 'src/auth/decorators';
-import { Res } from '@nestjs/common';
-import { Response } from 'express';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Asignacion } from './entities/asignacione.entity';
+
 @ApiTags('asignaciones')
 @Controller('asignaciones')
 export class AsignacionesController {
   constructor(private readonly asignacionesService: AsignacionesService) { }
 
   @Post()
-  @ApiTags('asignaciones')
-  @ApiResponse({ status: 201, description: 'The asignacion has been successfully created.', type: Asignacion })
-  @ApiResponse({ status: 400, description: 'Bad Request.' })
-  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiOperation({ summary: 'Crear una nueva asignación' })
+  @ApiResponse({ status: 201, description: 'Asignación creada con éxito.', type: Asignacion })
+  @ApiResponse({ status: 400, description: 'Datos inválidos.' })
+  @ApiResponse({ status: 401, description: 'No autorizado.' })
   @Auth()
   create(@Body() createAsignacioneDto: CreateAsignacioneDto) {
     return this.asignacionesService.create(createAsignacioneDto);
   }
 
   @Get()
+  @ApiOperation({ summary: 'Listar todas las asignaciones' })
+  @ApiResponse({ status: 200, description: 'Lista de asignaciones.', type: [Asignacion] })
   findAll() {
     return this.asignacionesService.findAll();
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Obtener una asignación por ID' })
+  @ApiResponse({ status: 200, description: 'Asignación encontrada.', type: Asignacion })
+  @ApiResponse({ status: 404, description: 'Asignación no encontrada.' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.asignacionesService.findOne(id);
   }
 
-
   @Patch(':id')
   @Auth()
+  @ApiOperation({ summary: 'Actualizar una asignación existente' })
+  @ApiResponse({ status: 200, description: 'Asignación actualizada.', type: Asignacion })
+  @ApiResponse({ status: 401, description: 'No autorizado.' })
+  @ApiResponse({ status: 404, description: 'Asignación no encontrada.' })
   update(@Param('id', ParseIntPipe) id: number, @Body() updateAsignacioneDto: UpdateAsignacioneDto) {
     return this.asignacionesService.update(id, updateAsignacioneDto);
   }
 
   @Delete(':id')
   @Auth()
-  remove(@Param('id',ParseIntPipe) id: number) {
+  @ApiOperation({ summary: 'Eliminar una asignación' })
+  @ApiResponse({ status: 200, description: 'Asignación eliminada correctamente.' })
+  @ApiResponse({ status: 401, description: 'No autorizado.' })
+  @ApiResponse({ status: 404, description: 'Asignación no encontrada.' })
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.asignacionesService.remove(id);
   }
-  // generar pdf
-@Get('pdf/:id')
-async getPdf(
-  @Param('id', ParseIntPipe) id: number,
-  @Res() res: any // Inyectamos la respuesta de Express
-) {
-  const pdfBuffer = await this.asignacionesService.generatePdf(id);
-  
-  // Configuramos los headers para que el navegador lo identifique como PDF
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename=asignacion_${id}.pdf`);
-  
-  return res.send(pdfBuffer);
-}
+
+  @Get('pdf/:id')
+  @ApiOperation({ summary: 'Generar y descargar comprobante de asignación en PDF' })
+  @ApiResponse({
+    status: 200,
+    description: 'Archivo PDF de la asignación',
+    content: { 'application/pdf': {} }
+  })
+  @ApiResponse({ status: 404, description: 'Asignación no encontrada.' })
+  async getPdf(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res: any
+  ) {
+    const pdfBuffer = await this.asignacionesService.generatePdf(id);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=asignacion_${id}.pdf`);
+
+    return res.send(pdfBuffer);
+  }
 }
