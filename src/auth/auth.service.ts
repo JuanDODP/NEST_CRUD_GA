@@ -310,7 +310,7 @@ export class AuthService {
     try {
       const usuarios = await this.userRepository.find({
         where: { isActive: true },
-        select: { id: true, email: true, name: true, rol: true, imagen: true }
+        select: { id: true, email: true, name: true, rol: true, imagen: true, salary: true }
       });
       return {
         ok: true,
@@ -324,7 +324,7 @@ export class AuthService {
   async findOne(id: number) {
     const usuario = await this.userRepository.findOne({
       where: { id },
-      select: { id: true, email: true, name: true, rol: true, isActive: true }
+      select: { id: true, email: true, name: true, rol: true, isActive: true, imagen: true, salary: true }
     });
 
     if (!usuario) {
@@ -342,6 +342,9 @@ export class AuthService {
   }
 async update(id: number, updateUserDto: UpdateUserDto, file?: Express.Multer.File) {
   const { usuarios } = await this.findOne(id);
+  console.log("================================");
+  console.log('LOS USUARIOS ENCONTRADOS SON:', usuarios);
+  console.log("================================");
 
   try {
     if (updateUserDto.password) {
@@ -381,7 +384,7 @@ async update(id: number, updateUserDto: UpdateUserDto, file?: Express.Multer.Fil
         ...userRest,
         // Construimos la URL solo para la respuesta, no para la DB
 
-        imagen: file ? `${this.configService.get('HOST_API')}/files/users/${updatedUser.imagen}` : `${this.configService.get('HOST_API')}/files/users/${usuarios.imagen}`
+        imagen: file ? `${this.configService.get('HOST_API')}/files/users/${updatedUser.imagen}` : `${usuarios.imagen}`
       },
     };
 

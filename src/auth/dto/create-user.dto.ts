@@ -29,7 +29,8 @@
 //     // isActive?: boolean;
 // }
 
-import { IsEmail, IsString, Matches, MaxLength, MinLength, IsArray, IsOptional, IsBoolean } from "class-validator";
+import { Type } from "class-transformer";
+import { IsEmail, IsString, Matches, MaxLength, MinLength, IsArray, IsOptional, IsBoolean, IsInt, Min, IsDecimal, IsNumber } from "class-validator";
 
 export class CreateUserDto {
 
@@ -63,5 +64,11 @@ export class CreateUserDto {
     // @MinLength(1, { message: 'La imagen es requerida' })
     @IsOptional()
     imagen?: string;
+
+   @IsNumber({ maxDecimalPlaces: 2 }, { message: 'El salario debe tener máximo 2 decimales' })
+  @Min(0, { message: 'El salario no puede ser negativo' })
+  @IsOptional()
+  @Type(() => Number) // Transforma el string de la petición (de Postman/Angular) a número
+  salary?: number;
 
 }

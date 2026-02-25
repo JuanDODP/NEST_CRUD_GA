@@ -87,6 +87,8 @@ export class User {
     rol: string;
     @Column('nvarchar', { length: 255, default: 'default-avatar-user.jpg' })
     imagen: string;
+    @Column('decimal', { precision: 18, scale: 2, default: 0.00 })
+    salary: number;
 
     // 'timestamp' en SQL Server no es para fechas, se usa 'datetime2'
     @CreateDateColumn({ type: 'datetime2' })
