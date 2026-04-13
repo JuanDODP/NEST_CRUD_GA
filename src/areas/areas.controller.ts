@@ -6,7 +6,6 @@ import { Auth } from '../auth/decorators/auth.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileFilter, fileNamer } from './helpers';
 import { diskStorage } from 'multer';
-import { ApiTags } from '@nestjs/swagger';
 // @ApiTags('areas')
 @Controller('areas')
 export class AreasController {

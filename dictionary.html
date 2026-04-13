@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Diccionario de Base de Datos — INTEGRA ARRENDA</title>
+  <style>
+    /* ============================
+       RESET & FUENTES
+    ============================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --primary:     #1E3A5F;
+      --accent:      #2563EB;
+      --accent-soft: #DBEAFE;
+      --success:     #059669;
+      --warning:     #D97706;
+      --danger:      #DC2626;
+      --gray-50:     #F9FAFB;
+      --gray-100:    #F3F4F6;
+      --gray-200:    #E5E7EB;
+      --gray-400:    #9CA3AF;
+      --gray-600:    #4B5563;
+      --gray-800:    #1F2937;
+      --border:      #CBD5E1;
+      --radius:      6px;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--gray-800);
+      background: #fff;
+    }
+
+    /* ============================
+       PORTADA
+    ============================ */
+    .cover {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #1E3A5F 0%, #1a4fa8 60%, #2563EB 100%);
+      color: #fff;
+      text-align: center;
+      padding: 60px 40px;
+      page-break-after: always;
+    }
+
+    .cover .logo-ring {
+      width: 90px; height: 90px;
+      border: 3px solid rgba(255,255,255,0.5);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 28px;
+      font-size: 36px;
+    }
+
+    .cover h1 {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+    }
+
+    .cover h2 {
+      font-size: 16px;
+      font-weight: 400;
+      opacity: 0.85;
+      margin-bottom: 36px;
+    }
+
+    .cover .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      max-width: 620px;
+      margin: 0 auto 40px;
+    }
+
+    .cover .meta-card {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 10px;
+      padding: 16px 12px;
+    }
+
+    .cover .meta-card .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.7;
+      margin-bottom: 4px;
+    }
+
+    .cover .meta-card .value {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .cover .badge-row {
+      display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+    }
+
+    .cover .badge {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 999px;
+      padding: 5px 16px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    /* ============================
+       CONTENIDO GENERAL
+    ============================ */
+    .content {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 40px 60px;
+    }
+
+    /* ============================
+       TABLA DE CONTENIDOS
+    ============================ */
+    .toc {
+      page-break-after: always;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--primary);
+    }
+
+    .section-header .icon {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .section-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .toc-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .toc-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      border-left: 4px solid var(--accent);
+    }
+
+    .toc-item .toc-num {
+      width: 26px; height: 26px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .toc-item .toc-info {}
+    .toc-item .toc-table { font-weight: 600; color: var(--primary); font-size: 13px; }
+    .toc-item .toc-desc { color: var(--gray-600); font-size: 11px; }
+
+    .toc-item.new { border-left-color: var(--success); }
+    .toc-item.new .toc-num { background: var(--success); }
+
+    /* ============================
+       ERD / MAPA DE RELACIONES
+    ============================ */
+    .erd-section {
+      page-break-after: always;
+    }
+
+    .erd-box {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      padding: 30px;
+    }
+
+    .erd-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .erd-table {
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 11px;
+    }
+
+    .erd-table.new-table { border-color: var(--success); }
+
+    .erd-table-header {
+      background: var(--accent);
+      color: #fff;
+      padding: 8px 12px;
+      font-weight: 700;
+      font-size: 12px;
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .erd-table.new-table .erd-table-header { background: var(--success); }
+
+    .erd-table-body { padding: 8px 10px; background: #fff; }
+
+    .erd-field {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 0;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 10px;
+      color: var(--gray-600);
+    }
+
+    .erd-field:last-child { border-bottom: none; }
+
+    .erd-field .badge-pk {
+      background: #FEF3C7; color: #92400E;
+      border: 1px solid #F59E0B;
+      border-radius: 3px; padding: 0 4px;
+      font-size: 9px; font-weight: 700; flex-shrink: 0;
+    }
+
+    .erd-field .badge-fk {
+      background: #EDE9FE; color: #5B21B6;
+      border: 1px solid #8B5CF6;
+      border-radius: 3px; padding: 0 4px;
+      font-size: 9px; font-weight: 700; flex-shrink: 0;
+    }
+
+    .relations-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .relation-chip {
+      background: #fff;
+      border: 1px solid var(--gray-200);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 11px;
+      color: var(--gray-600);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .relation-chip strong { color: var(--primary); }
+    .relation-chip .arrow { color: var(--accent); font-size: 14px; }
+
+    /* ============================
+       TABLA DE ENTIDAD
+    ============================ */
+    .entity-block {
+      margin-bottom: 50px;
+      page-break-inside: avoid;
+    }
+
+    .entity-block:not(:last-child) {
+      page-break-after: auto;
+    }
+
+    .entity-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding: 14px 18px;
+      background: var(--primary);
+      border-radius: var(--radius) var(--radius) 0 0;
+      color: #fff;
+    }
+
+    .entity-title.new-entity { background: #064E3B; }
+
+    .entity-title .entity-num {
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+
+    .entity-title h3 {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .entity-title .entity-sql {
+      margin-left: auto;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      background: rgba(255,255,255,0.15);
+      border-radius: 4px;
+      padding: 3px 10px;
+      opacity: 0.9;
+    }
+
+    .entity-badge-new {
+      margin-left: 6px;
+      background: #10B981;
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 2px 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .entity-desc {
+      background: var(--accent-soft);
+      border: 1px solid #BFDBFE;
+      border-top: none;
+      padding: 10px 18px;
+      font-size: 12px;
+      color: #1E40AF;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .entity-desc.new-desc {
+      background: #ECFDF5;
+      border-color: #A7F3D0;
+      color: #065F46;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--border);
+      border-top: none;
+    }
+
+    .data-table thead tr {
+      background: var(--gray-100);
+    }
+
+    .data-table th {
+      padding: 9px 12px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--gray-600);
+      border-bottom: 2px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+
+    .data-table th:last-child { border-right: none; }
+
+    .data-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--gray-200);
+      border-right: 1px solid var(--gray-200);
+      vertical-align: middle;
+      font-size: 11.5px;
+    }
+
+    .data-table td:last-child { border-right: none; }
+
+    .data-table tbody tr:nth-child(even) { background: var(--gray-50); }
+    .data-table tbody tr:hover { background: #EFF6FF; }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+
+    /* Badges de columna */
+    .col-name {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-right: 4px;
+      white-space: nowrap;
+    }
+
+    .tag-pk { background: #FEF3C7; color: #92400E; border: 1px solid #F59E0B; }
+    .tag-fk { background: #EDE9FE; color: #5B21B6; border: 1px solid #8B5CF6; }
+    .tag-idx { background: #DCFCE7; color: #15803D; border: 1px solid #4ADE80; }
+    .tag-uniq { background: #FFE4E6; color: #BE123C; border: 1px solid #F43F5E; }
+
+    .type-badge {
+      font-family: 'Courier New', monospace;
+      font-size: 10.5px;
+      color: #0369A1;
+      background: #E0F2FE;
+      border: 1px solid #BAE6FD;
+      border-radius: 4px;
+      padding: 2px 7px;
+      white-space: nowrap;
+    }
+
+    .dot-yes {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+    }
+
+    .dot-no {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: var(--danger);
+      border-radius: 50%;
+    }
+
+    .default-val {
+      font-family: 'Courier New', monospace;
+      font-size: 10.5px;
+      color: var(--gray-600);
+      background: var(--gray-100);
+      border-radius: 3px;
+      padding: 1px 6px;
+    }
+
+    .null-text { color: var(--gray-400); font-style: italic; font-size: 11px; }
+
+    /* ============================
+       GLOSARIO
+    ============================ */
+    .glossary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    .glossary-card {
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      background: var(--gray-50);
+    }
+
+    .glossary-card .gc-title {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+
+    .glossary-card .gc-body {
+      color: var(--gray-600);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    /* ============================
+       FOOTER POR PÁGINA
+    ============================ */
+    .page-footer {
+      margin-top: 60px;
+      padding-top: 16px;
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--gray-400);
+      font-size: 10px;
+    }
+
+    /* ============================
+       UTILIDADES
+    ============================ */
+    .mt-40 { margin-top: 40px; }
+    .mb-10 { margin-bottom: 10px; }
+    .mb-20 { margin-bottom: 20px; }
+
+    /* ============================
+       ESTILOS DE IMPRESIÓN
+    ============================ */
+    @media print {
+      @page {
+        size: A4;
+        margin: 18mm 14mm 18mm 14mm;
+      }
+
+      body {
+        font-size: 10px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .cover {
+        min-height: 100vh;
+        page-break-after: always;
+      }
+
+      .toc { page-break-after: always; }
+      .erd-section { page-break-after: always; }
+
+      .entity-block {
+        page-break-inside: avoid;
+      }
+
+      .entity-title { page-break-after: avoid; }
+
+      .data-table { page-break-inside: auto; }
+      .data-table tr { page-break-inside: avoid; page-break-after: auto; }
+      .data-table thead { display: table-header-group; }
+
+      .toc-list { grid-template-columns: 1fr 1fr; }
+      .erd-grid { grid-template-columns: repeat(4, 1fr); }
+      .glossary-grid { grid-template-columns: 1fr 1fr 1fr; }
+
+      a { text-decoration: none; color: inherit; }
+
+      .page-footer { display: flex; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- =========================================================
+     PORTADA
+========================================================= -->
+<div class="cover">
+  <div class="logo-ring">🗄️</div>
+  <h1>Diccionario de Base de Datos</h1>
+  <h2>Sistema de Asignaciones — INTEGRA ARRENDA</h2>
+
+  <div class="meta-grid">
+    <div class="meta-card">
+      <div class="label">Motor de BD</div>
+      <div class="value">SQL Server (MSSQL)</div>
+    </div>
+    <div class="meta-card">
+      <div class="label">Total de Tablas</div>
+      <div class="value">7 tablas</div>
+    </div>
+    <div class="meta-card">
+      <div class="label">Versión del Doc.</div>
+      <div class="value">v1.0 — 2026</div>
+    </div>
+    <div class="meta-card">
+      <div class="label">Framework</div>
+      <div class="value">NestJS 11 + TypeORM</div>
+    </div>
+    <div class="meta-card">
+      <div class="label">Fecha de Emisión</div>
+      <div class="value">10 de abril, 2026</div>
+    </div>
+    <div class="meta-card">
+      <div class="label">Elaborado por</div>
+      <div class="value">Equipo de Desarrollo</div>
+    </div>
+  </div>
+
+  <div class="badge-row">
+    <span class="badge">4 Tablas del sistema</span>
+    <span class="badge">3 Tablas propuestas</span>
+    <span class="badge">Relaciones FK documentadas</span>
+    <span class="badge">Tipos SQL Server nativos</span>
+  </div>
+</div>
+
+<!-- =========================================================
+     CONTENIDO
+========================================================= -->
+<div class="content">
+
+  <!-- ===== TABLA DE CONTENIDOS ===== -->
+  <section class="toc">
+    <div class="section-header">
+      <div class="icon">📋</div>
+      <h2>Tabla de Contenidos</h2>
+    </div>
+
+    <ul class="toc-list">
+      <li class="toc-item">
+        <div class="toc-num">1</div>
+        <div class="toc-info">
+          <div class="toc-table">users</div>
+          <div class="toc-desc">Usuarios del sistema con autenticación y roles</div>
+        </div>
+      </li>
+      <li class="toc-item">
+        <div class="toc-num">2</div>
+        <div class="toc-info">
+          <div class="toc-table">areas</div>
+          <div class="toc-desc">Áreas organizacionales de la empresa</div>
+        </div>
+      </li>
+      <li class="toc-item">
+        <div class="toc-num">3</div>
+        <div class="toc-info">
+          <div class="toc-table">proyectos</div>
+          <div class="toc-desc">Proyectos asignados a cada área</div>
+        </div>
+      </li>
+      <li class="toc-item">
+        <div class="toc-num">4</div>
+        <div class="toc-info">
+          <div class="toc-table">asignaciones</div>
+          <div class="toc-desc">Relación entre usuarios y proyectos</div>
+        </div>
+      </li>
+      <li class="toc-item new">
+        <div class="toc-num">5</div>
+        <div class="toc-info">
+          <div class="toc-table">departamentos <span style="color:#059669;font-size:10px;font-weight:700;">[PROPUESTA]</span></div>
+          <div class="toc-desc">Agrupación jerárquica superior a las áreas</div>
+        </div>
+      </li>
+      <li class="toc-item new">
+        <div class="toc-num">6</div>
+        <div class="toc-info">
+          <div class="toc-table">contratos <span style="color:#059669;font-size:10px;font-weight:700;">[PROPUESTA]</span></div>
+          <div class="toc-desc">Contratos laborales de cada usuario</div>
+        </div>
+      </li>
+      <li class="toc-item new">
+        <div class="toc-num">7</div>
+        <div class="toc-info">
+          <div class="toc-table">auditoria_log <span style="color:#059669;font-size:10px;font-weight:700;">[PROPUESTA]</span></div>
+          <div class="toc-desc">Trazabilidad de acciones críticas del sistema</div>
+        </div>
+      </li>
+    </ul>
+
+    <div class="page-footer">
+      <span>INTEGRA ARRENDA — Diccionario de Base de Datos</span>
+      <span>Confidencial · Uso interno</span>
+    </div>
+  </section>
+
+  <!-- ===== MAPA DE RELACIONES (ERD simplificado) ===== -->
+  <section class="erd-section mt-40">
+    <div class="section-header">
+      <div class="icon">🔗</div>
+      <h2>Mapa de Relaciones (ERD)</h2>
+    </div>
+
+    <div class="erd-box">
+      <div class="erd-grid">
+
+        <!-- users -->
+        <div class="erd-table">
+          <div class="erd-table-header">👤 users</div>
+          <div class="erd-table-body">
+            <div class="erd-field"><span class="badge-pk">PK</span> id</div>
+            <div class="erd-field">name</div>
+            <div class="erd-field">email</div>
+            <div class="erd-field">password</div>
+            <div class="erd-field">rol</div>
+            <div class="erd-field">salary</div>
+            <div class="erd-field">imagen</div>
+            <div class="erd-field">isActive</div>
+            <div class="erd-field">fechaRegistro</div>
+          </div>
+        </div>
+
+        <!-- areas -->
+        <div class="erd-table">
+          <div class="erd-table-header">🏢 areas</div>
+          <div class="erd-table-body">
+            <div class="erd-field"><span class="badge-pk">PK</span> id</div>
+            <div class="erd-field">nombre</div>
+            <div class="erd-field">description</div>
+            <div class="erd-field">imagen</div>
+          </div>
+        </div>
+
+        <!-- proyectos -->
+        <div class="erd-table">
+          <div class="erd-table-header">📁 proyectos</div>
+          <div class="erd-table-body">
+            <div class="erd-field"><span class="badge-pk">PK</span> id</div>
+            <div class="erd-field">nombreProyecto</div>
+            <div class="erd-field">fechaInicio</div>
+            <div class="erd-field">fechaFin</div>
+            <div class="erd-field">imagen</div>
+            <div class="erd-field"><span class="badge-fk">FK</span> areaId</div>
+          </div>
+        </div>
+
+        <!-- asignaciones -->
+        <div class="erd-table">
+          <div class="erd-table-header">📌 asignaciones</div>
+          <div class="erd-table-body">
+            <div class="erd-field"><span class="badge-pk">PK</span> id</div>
+            <div class="erd-field">fechaAsignacion</div>
+            <div class="erd-field"><span class="badge-fk">FK</span> idUsuario</div>
+            <div class="erd-field"><span class="badge-fk">FK</span> idProyecto</div>
+          </div>
+        </div>
+
+        <!-- departamentos -->
+        <div class="erd-table new-table">
+          <div class="erd-table-header">🏛️ departamentos</div>
+          <div class="erd-table-body">
+            <div class="erd-field"><span class="badge-pk">PK</span> id</div>
+            <div class="erd-field">nombre</div>
+            <div class="erd-field">codigo</div>
+            <div class="erd-field">responsable</div>
+            <div class="erd-field">presupuesto</div>
+            <div class="erd-field">isActive</div>
+          </div>
+        </div>
+
+        <!-- contratos -->
+        <div class="erd-table new-table">
+          <div class="erd-table-header">📄 contratos</div>
+          <div class="erd-table-body">
+            <div class="erd-field"><span class="badge-pk">PK</span> id</div>
+            <div class="erd-field">tipoContrato</div>
+            <div class="erd-field">fechaInicio</div>
+            <div class="erd-field">fechaVencimiento</div>
+            <div class="erd-field">salarioBase</div>
+            <div class="erd-field">estado</div>
+            <div class="erd-field"><span class="badge-fk">FK</span> idUsuario</div>
+          </div>
+        </div>
+
+        <!-- auditoria_log -->
+        <div class="erd-table new-table">
+          <div class="erd-table-header">🔍 auditoria_log</div>
+          <div class="erd-table-body">
+            <div class="erd-field"><span class="badge-pk">PK</span> id</div>
+            <div class="erd-field">accion</div>
+            <div class="erd-field">entidad</div>
+            <div class="erd-field">entidadId</div>
+            <div class="erd-field">valorAnterior</div>
+            <div class="erd-field">valorNuevo</div>
+            <div class="erd-field">ipOrigen</div>
+            <div class="erd-field">fechaEvento</div>
+            <div class="erd-field"><span class="badge-fk">FK</span> idUsuario</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Relaciones textuales -->
+      <div style="margin-top:10px;">
+        <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:10px;">Relaciones establecidas</div>
+        <div class="relations-list">
+          <div class="relation-chip"><strong>areas</strong><span class="arrow">→</span><strong>proyectos</strong> (1:N · areaId)</div>
+          <div class="relation-chip"><strong>users</strong><span class="arrow">→</span><strong>asignaciones</strong> (1:N · idUsuario)</div>
+          <div class="relation-chip"><strong>proyectos</strong><span class="arrow">→</span><strong>asignaciones</strong> (1:N · idProyecto)</div>
+          <div class="relation-chip"><strong>users</strong><span class="arrow">→</span><strong>contratos</strong> (1:N · idUsuario) [propuesta]</div>
+          <div class="relation-chip"><strong>users</strong><span class="arrow">→</span><strong>auditoria_log</strong> (1:N · idUsuario) [propuesta]</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>INTEGRA ARRENDA — Diccionario de Base de Datos</span>
+      <span>Confidencial · Uso interno</span>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       TABLAS DEL SISTEMA
+  ========================================================= -->
+  <section class="mt-40">
+    <div class="section-header">
+      <div class="icon">📂</div>
+      <h2>Tablas del Sistema</h2>
+    </div>
+
+    <!-- ====== TABLA 1: users ====== -->
+    <div class="entity-block">
+      <div class="entity-title">
+        <span class="entity-num">T-01</span>
+        <h3>users &nbsp;·&nbsp; Usuarios del Sistema</h3>
+        <span class="entity-sql">dbo.users</span>
+      </div>
+      <div class="entity-desc">
+        📌 Almacena las credenciales, datos personales y configuración de acceso de cada usuario registrado en el sistema. El campo <code>password</code> se encripta con bcrypt (10 rounds) antes de persistir. El campo <code>rol</code> se guarda como cadena simple dado que SQL Server no admite arrays nativos.
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Columna</th>
+            <th>Tipo SQL Server</th>
+            <th>Longitud / Precisión</th>
+            <th>Nulable</th>
+            <th>Valor por Defecto</th>
+            <th>Restricciones</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="col-name">id</span></td>
+            <td><span class="type-badge">INT</span></td>
+            <td>—</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">IDENTITY(1,1)</span></td>
+            <td><span class="tag tag-pk">PK</span></td>
+            <td>Identificador único autoincremental del usuario.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">name</span></td>
+            <td><span class="type-badge">NVARCHAR(255)</span></td>
+            <td>255 chars</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="null-text">—</span></td>
+            <td>—</td>
+            <td>Nombre completo del usuario. Soporta caracteres Unicode (acentos, ñ).</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">email</span></td>
+            <td><span class="type-badge">NVARCHAR(255)</span></td>
+            <td>255 chars</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="null-text">—</span></td>
+            <td><span class="tag tag-uniq">UNIQUE</span></td>
+            <td>Correo electrónico. Normalizado a minúsculas en <code>@BeforeInsert</code> / <code>@BeforeUpdate</code>. Índice único en la tabla.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">password</span></td>
+            <td><span class="type-badge">NVARCHAR(MAX)</span></td>
+            <td>Sin límite</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="null-text">—</span></td>
+            <td><code>select: false</code></td>
+            <td>Hash bcrypt de la contraseña (10 rounds). Excluido de las consultas SELECT por defecto para seguridad.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">rol</span></td>
+            <td><span class="type-badge">NVARCHAR(255)</span></td>
+            <td>255 chars</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">'user'</span></td>
+            <td>—</td>
+            <td>Rol del usuario en el sistema. Valores posibles: <code>user</code>, <code>admin</code>. No usa array ya que SQL Server no soporta tipos de arreglo nativos.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">imagen</span></td>
+            <td><span class="type-badge">NVARCHAR(255)</span></td>
+            <td>255 chars</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">'default-avatar-user.jpg'</span></td>
+            <td>—</td>
+            <td>Nombre del archivo de imagen del avatar. La URL completa se construye dinámicamente con <code>HOST_API</code> mediante <code>@AfterLoad</code>. Al actualizar, el archivo anterior se elimina físicamente del disco (<code>fs.unlinkSync</code>), excepto si es <code>default-avatar-user.jpg</code>.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">salary</span></td>
+            <td><span class="type-badge">DECIMAL(18,2)</span></td>
+            <td>Precisión 18, Escala 2</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">0.00</span></td>
+            <td>—</td>
+            <td>Sueldo del usuario en moneda local. Máximo 2 decimales, mínimo 0. Validado con <code>@IsNumber({ maxDecimalPlaces: 2 })</code> y <code>@Min(0)</code>.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">isActive</span></td>
+            <td><span class="type-badge">BIT</span></td>
+            <td>0 ó 1</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">1</span></td>
+            <td>—</td>
+            <td>Indica si el usuario está activo (<code>1</code>) o ha sido desactivado lógicamente (<code>0</code>). SQL Server usa el tipo BIT para booleanos.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">fechaRegistro</span></td>
+            <td><span class="type-badge">DATETIME2</span></td>
+            <td>Hasta 7 decimales</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">GETDATE()</span></td>
+            <td><code>@CreateDateColumn</code></td>
+            <td>Fecha y hora exacta del registro del usuario. Gestionado automáticamente por TypeORM en el momento de la inserción.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ====== TABLA 2: areas ====== -->
+    <div class="entity-block">
+      <div class="entity-title">
+        <span class="entity-num">T-02</span>
+        <h3>areas &nbsp;·&nbsp; Áreas Organizacionales</h3>
+        <span class="entity-sql">dbo.areas</span>
+      </div>
+      <div class="entity-desc">
+        📌 Define las áreas funcionales o departamentales de la empresa. Cada área puede tener múltiples proyectos asociados. Incluye exportación de datos a Excel mediante ExcelJS y generación de reportes administrativos.
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Columna</th>
+            <th>Tipo SQL Server</th>
+            <th>Longitud / Precisión</th>
+            <th>Nulable</th>
+            <th>Valor por Defecto</th>
+            <th>Restricciones</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="col-name">id</span></td>
+            <td><span class="type-badge">INT</span></td>
+            <td>—</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">IDENTITY(1,1)</span></td>
+            <td><span class="tag tag-pk">PK</span></td>
+            <td>Identificador único autoincremental del área.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">nombre</span></td>
+            <td><span class="type-badge">NVARCHAR(255)</span></td>
+            <td>255 chars</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="null-text">—</span></td>
+            <td>—</td>
+            <td>Nombre descriptivo del área (ej: "Recursos Humanos", "Sistemas"). Longitud definida para optimizar índices en SQL Server.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">description</span></td>
+            <td><span class="type-badge">NVARCHAR(MAX)</span></td>
+            <td>Sin límite</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="null-text">—</span></td>
+            <td>—</td>
+            <td>Descripción detallada del área. Se usa <code>NVARCHAR(MAX)</code> en lugar de <code>TEXT</code> (deprecado en SQL Server moderno) para descripciones largas.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">imagen</span></td>
+            <td><span class="type-badge">NVARCHAR(255)</span></td>
+            <td>255 chars</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">'default-image.png'</span></td>
+            <td>—</td>
+            <td>Nombre del archivo de imagen representativa del área. La URL se construye dinámicamente mediante <code>@AfterLoad</code> con la variable <code>HOST_API</code>. Al actualizar la imagen, el archivo anterior se elimina del sistema de archivos.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ====== TABLA 3: proyectos ====== -->
+    <div class="entity-block">
+      <div class="entity-title">
+        <span class="entity-num">T-03</span>
+        <h3>proyectos &nbsp;·&nbsp; Proyectos</h3>
+        <span class="entity-sql">dbo.proyectos</span>
+      </div>
+      <div class="entity-desc">
+        📌 Registra los proyectos de la organización vinculados a un área específica. Define el ciclo de vida del proyecto mediante fechas de inicio y fin. Cuenta con exportación a Excel con datos enriquecidos (nombre del área, descripción) mediante una consulta con relaciones.
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Columna</th>
+            <th>Tipo SQL Server</th>
+            <th>Longitud / Precisión</th>
+            <th>Nulable</th>
+            <th>Valor por Defecto</th>
+            <th>Restricciones</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="col-name">id</span></td>
+            <td><span class="type-badge">INT</span></td>
+            <td>—</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">IDENTITY(1,1)</span></td>
+            <td><span class="tag tag-pk">PK</span></td>
+            <td>Identificador único autoincremental del proyecto.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">nombreProyecto</span></td>
+            <td><span class="type-badge">NVARCHAR(255)</span></td>
+            <td>255 chars (mín. 3)</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="null-text">—</span></td>
+            <td>—</td>
+            <td>Nombre del proyecto. Validado con longitud mínima de 3 caracteres mediante <code>@MinLength(3)</code> en el DTO.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">fechaInicio</span></td>
+            <td><span class="type-badge">DATETIME2</span></td>
+            <td>Alta precisión</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="null-text">—</span></td>
+            <td>—</td>
+            <td>Fecha de inicio del proyecto. Se usa <code>DATETIME2</code> (en lugar de <code>DATE</code>) para mayor precisión y compatibilidad con strings ISO 8601. Validado con <code>@IsISO8601</code> en el DTO.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">fechaFin</span></td>
+            <td><span class="type-badge">DATETIME2</span></td>
+            <td>Alta precisión</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="null-text">—</span></td>
+            <td>—</td>
+            <td>Fecha estimada de finalización del proyecto. Debe ser posterior a <code>fechaInicio</code> (integridad lógica validada en el DTO de creación).</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">imagen</span></td>
+            <td><span class="type-badge">NVARCHAR(255)</span></td>
+            <td>255 chars</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">'default-image.png'</span></td>
+            <td>—</td>
+            <td>Nombre del archivo de imagen del proyecto. La URL completa se construye con <code>HOST_API</code> en tiempo de consulta (<code>@AfterLoad</code>). La imagen se guarda en <code>static/proyectos/</code>.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">areaId</span></td>
+            <td><span class="type-badge">INT</span></td>
+            <td>—</td>
+            <td><span class="dot-yes"></span> SÍ</td>
+            <td><span class="null-text">NULL</span></td>
+            <td><span class="tag tag-fk">FK</span> → areas.id</td>
+            <td>Clave foránea que vincula el proyecto con su área organizacional. Generada por TypeORM mediante <code>@ManyToOne</code> / <code>@JoinColumn({ name: 'areaId' })</code>. Error 547 si se intenta eliminar un área con proyectos activos.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ====== TABLA 4: asignaciones ====== -->
+    <div class="entity-block">
+      <div class="entity-title">
+        <span class="entity-num">T-04</span>
+        <h3>asignaciones &nbsp;·&nbsp; Asignaciones</h3>
+        <span class="entity-sql">dbo.asignaciones</span>
+      </div>
+      <div class="entity-desc">
+        📌 Tabla pivote que establece la relación muchos-a-muchos entre usuarios y proyectos. Registra la fecha exacta de asignación. Soporta generación de reportes PDF individuales por asignación (con datos del usuario, proyecto y área), usando PDFKit con imágenes locales del servidor.
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Columna</th>
+            <th>Tipo SQL Server</th>
+            <th>Longitud / Precisión</th>
+            <th>Nulable</th>
+            <th>Valor por Defecto</th>
+            <th>Restricciones</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="col-name">id</span></td>
+            <td><span class="type-badge">INT</span></td>
+            <td>—</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">IDENTITY(1,1)</span></td>
+            <td><span class="tag tag-pk">PK</span></td>
+            <td>Identificador único autoincremental de la asignación.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">fechaAsignacion</span></td>
+            <td><span class="type-badge">DATETIME2</span></td>
+            <td>Alta precisión</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="null-text">—</span></td>
+            <td>—</td>
+            <td>Fecha y hora en que se realizó la asignación del usuario al proyecto. Validado con <code>@IsISO8601</code> en el DTO. Usado en reportes PDF con formato localizado (<code>es-MX</code>).</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">idUsuario</span></td>
+            <td><span class="type-badge">INT</span></td>
+            <td>—</td>
+            <td><span class="dot-yes"></span> SÍ</td>
+            <td><span class="null-text">NULL</span></td>
+            <td><span class="tag tag-fk">FK</span> → users.id</td>
+            <td>Clave foránea al usuario asignado. Generada mediante <code>@ManyToOne(() => User)</code> y <code>@JoinColumn({ name: 'idUsuario' })</code>. El campo <code>password</code> del usuario se omite en las respuestas de consulta.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">idProyecto</span></td>
+            <td><span class="type-badge">INT</span></td>
+            <td>—</td>
+            <td><span class="dot-yes"></span> SÍ</td>
+            <td><span class="null-text">NULL</span></td>
+            <td><span class="tag tag-fk">FK</span> → proyectos.id</td>
+            <td>Clave foránea al proyecto asignado. Generada mediante <code>@ManyToOne(() => Proyecto)</code> y <code>@JoinColumn({ name: 'idProyecto' })</code>. Error 547 si se intenta eliminar un proyecto con asignaciones activas.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- =========================================================
+       TABLAS PROPUESTAS
+  ========================================================= -->
+  <section class="mt-40">
+    <div class="section-header">
+      <div class="icon" style="background:#059669;">💡</div>
+      <h2>Tablas Propuestas &nbsp;<span style="font-size:13px;font-weight:400;color:var(--gray-600);">— Extensión del modelo de datos</span></h2>
+    </div>
+
+    <!-- ====== TABLA 5: departamentos ====== -->
+    <div class="entity-block">
+      <div class="entity-title new-entity">
+        <span class="entity-num">T-05</span>
+        <h3>departamentos &nbsp;·&nbsp; Departamentos<span class="entity-badge-new">Propuesta</span></h3>
+        <span class="entity-sql">dbo.departamentos</span>
+      </div>
+      <div class="entity-desc new-desc">
+        💡 <strong>Justificación:</strong> El modelo actual no cuenta con una jerarquía organizacional superior a las áreas. Esta tabla permite agrupar múltiples áreas bajo un mismo departamento (ej: Tecnología → Área de Sistemas, Área de QA), reflejando la estructura corporativa real de INTEGRA ARRENDA. Permite también controlar un presupuesto a nivel de departamento y asignar un responsable titular.
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Columna</th>
+            <th>Tipo SQL Server</th>
+            <th>Longitud / Precisión</th>
+            <th>Nulable</th>
+            <th>Valor por Defecto</th>
+            <th>Restricciones</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="col-name">id</span></td>
+            <td><span class="type-badge">INT</span></td>
+            <td>—</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">IDENTITY(1,1)</span></td>
+            <td><span class="tag tag-pk">PK</span></td>
+            <td>Identificador único autoincremental del departamento.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">nombre</span></td>
+            <td><span class="type-badge">NVARCHAR(255)</span></td>
+            <td>255 chars</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="null-text">—</span></td>
+            <td>—</td>
+            <td>Nombre oficial del departamento (ej: "Tecnología e Innovación", "Administración y Finanzas").</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">codigo</span></td>
+            <td><span class="type-badge">NVARCHAR(20)</span></td>
+            <td>20 chars</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="null-text">—</span></td>
+            <td><span class="tag tag-uniq">UNIQUE</span></td>
+            <td>Código interno único del departamento (ej: <code>DEPT-TI-001</code>). Útil para referencias cruzadas en reportes y exportaciones.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">responsable</span></td>
+            <td><span class="type-badge">NVARCHAR(255)</span></td>
+            <td>255 chars</td>
+            <td><span class="dot-yes"></span> SÍ</td>
+            <td><span class="null-text">NULL</span></td>
+            <td>—</td>
+            <td>Nombre del titular o jefe del departamento. Campo de texto libre para mayor flexibilidad (sin FK directa al inicio).</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">presupuesto</span></td>
+            <td><span class="type-badge">DECIMAL(18,2)</span></td>
+            <td>Precisión 18, Escala 2</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">0.00</span></td>
+            <td>—</td>
+            <td>Presupuesto anual asignado al departamento. Tipado con <code>DECIMAL(18,2)</code> siguiendo la directiva de tipado monetario estricto del proyecto.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">descripcion</span></td>
+            <td><span class="type-badge">NVARCHAR(MAX)</span></td>
+            <td>Sin límite</td>
+            <td><span class="dot-yes"></span> SÍ</td>
+            <td><span class="null-text">NULL</span></td>
+            <td>—</td>
+            <td>Descripción extendida de las funciones y responsabilidades del departamento.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">isActive</span></td>
+            <td><span class="type-badge">BIT</span></td>
+            <td>0 ó 1</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">1</span></td>
+            <td>—</td>
+            <td>Estado del departamento. Permite desactivación lógica sin eliminación física del registro, manteniendo integridad referencial con las áreas vinculadas.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">fechaCreacion</span></td>
+            <td><span class="type-badge">DATETIME2</span></td>
+            <td>Alta precisión</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">GETDATE()</span></td>
+            <td><code>@CreateDateColumn</code></td>
+            <td>Fecha y hora de creación del registro. Gestionado automáticamente por TypeORM.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ====== TABLA 6: contratos ====== -->
+    <div class="entity-block">
+      <div class="entity-title new-entity">
+        <span class="entity-num">T-06</span>
+        <h3>contratos &nbsp;·&nbsp; Contratos Laborales<span class="entity-badge-new">Propuesta</span></h3>
+        <span class="entity-sql">dbo.contratos</span>
+      </div>
+      <div class="entity-desc new-desc">
+        💡 <strong>Justificación:</strong> El modelo actual solo almacena el salario actual del usuario, pero no tiene trazabilidad de sus condiciones contractuales históricas. Esta tabla permite asociar uno o más contratos a cada usuario, registrando el tipo de relación laboral, las fechas de vigencia, el salario base pactado y el estado del contrato. Es especialmente útil para el módulo de reportes y auditorías de INTEGRA ARRENDA.
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Columna</th>
+            <th>Tipo SQL Server</th>
+            <th>Longitud / Precisión</th>
+            <th>Nulable</th>
+            <th>Valor por Defecto</th>
+            <th>Restricciones</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="col-name">id</span></td>
+            <td><span class="type-badge">INT</span></td>
+            <td>—</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">IDENTITY(1,1)</span></td>
+            <td><span class="tag tag-pk">PK</span></td>
+            <td>Identificador único autoincremental del contrato.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">tipoContrato</span></td>
+            <td><span class="type-badge">NVARCHAR(100)</span></td>
+            <td>100 chars</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="null-text">—</span></td>
+            <td>—</td>
+            <td>Clasificación del contrato. Valores esperados: <code>INDEFINIDO</code>, <code>TEMPORAL</code>, <code>HONORARIOS</code>, <code>PROYECTO</code>. Se recomienda validar con enum en el DTO.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">fechaInicio</span></td>
+            <td><span class="type-badge">DATETIME2</span></td>
+            <td>Alta precisión</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="null-text">—</span></td>
+            <td>—</td>
+            <td>Fecha de inicio de vigencia del contrato. Debe ser anterior o igual a <code>fechaVencimiento</code>.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">fechaVencimiento</span></td>
+            <td><span class="type-badge">DATETIME2</span></td>
+            <td>Alta precisión</td>
+            <td><span class="dot-yes"></span> SÍ</td>
+            <td><span class="null-text">NULL</span></td>
+            <td>—</td>
+            <td>Fecha de vencimiento del contrato. <code>NULL</code> para contratos indefinidos activos. Permite alertas programadas de vencimiento próximo.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">salarioBase</span></td>
+            <td><span class="type-badge">DECIMAL(18,2)</span></td>
+            <td>Precisión 18, Escala 2</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">0.00</span></td>
+            <td>—</td>
+            <td>Salario base pactado en este contrato específico. Histórico independiente del campo <code>salary</code> en la tabla <code>users</code>, que refleja el salario vigente actual.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">estado</span></td>
+            <td><span class="type-badge">NVARCHAR(50)</span></td>
+            <td>50 chars</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">'ACTIVO'</span></td>
+            <td>—</td>
+            <td>Estado actual del contrato. Valores posibles: <code>ACTIVO</code>, <code>VENCIDO</code>, <code>CANCELADO</code>, <code>RENOVADO</code>. Permite filtrar contratos vigentes en reportes.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">observaciones</span></td>
+            <td><span class="type-badge">NVARCHAR(MAX)</span></td>
+            <td>Sin límite</td>
+            <td><span class="dot-yes"></span> SÍ</td>
+            <td><span class="null-text">NULL</span></td>
+            <td>—</td>
+            <td>Notas o comentarios adicionales sobre cláusulas especiales, modificaciones o condiciones particulares del contrato.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">idUsuario</span></td>
+            <td><span class="type-badge">INT</span></td>
+            <td>—</td>
+            <td><span class="dot-yes"></span> SÍ</td>
+            <td><span class="null-text">NULL</span></td>
+            <td><span class="tag tag-fk">FK</span> → users.id</td>
+            <td>Clave foránea al usuario titular del contrato. Relación <code>ManyToOne</code> con la entidad <code>User</code>. Un usuario puede tener múltiples contratos a lo largo del tiempo (histórico).</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">fechaRegistro</span></td>
+            <td><span class="type-badge">DATETIME2</span></td>
+            <td>Alta precisión</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">GETDATE()</span></td>
+            <td><code>@CreateDateColumn</code></td>
+            <td>Fecha y hora en que se registró el contrato en el sistema. Auditoria básica de creación del registro.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ====== TABLA 7: auditoria_log ====== -->
+    <div class="entity-block">
+      <div class="entity-title new-entity">
+        <span class="entity-num">T-07</span>
+        <h3>auditoria_log &nbsp;·&nbsp; Log de Auditoría<span class="entity-badge-new">Propuesta</span></h3>
+        <span class="entity-sql">dbo.auditoria_log</span>
+      </div>
+      <div class="entity-desc new-desc">
+        💡 <strong>Justificación:</strong> El sistema no cuenta con trazabilidad de cambios sobre entidades críticas. Esta tabla registra automáticamente qué usuario realizó qué acción, sobre qué entidad, cuándo y desde qué IP. Es fundamental para cumplimiento normativo, auditorías internas y detección de anomalías. Se recomienda poblarla mediante interceptores NestJS (<code>@UseInterceptors</code>) o subscribers de TypeORM (<code>EntitySubscriberInterface</code>).
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Columna</th>
+            <th>Tipo SQL Server</th>
+            <th>Longitud / Precisión</th>
+            <th>Nulable</th>
+            <th>Valor por Defecto</th>
+            <th>Restricciones</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="col-name">id</span></td>
+            <td><span class="type-badge">BIGINT</span></td>
+            <td>—</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">IDENTITY(1,1)</span></td>
+            <td><span class="tag tag-pk">PK</span></td>
+            <td>Identificador único de la entrada de log. Se usa <code>BIGINT</code> (en lugar de INT) previendo un alto volumen de registros a largo plazo.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">accion</span></td>
+            <td><span class="type-badge">NVARCHAR(50)</span></td>
+            <td>50 chars</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="null-text">—</span></td>
+            <td>—</td>
+            <td>Tipo de operación registrada. Valores posibles: <code>CREATE</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>LOGIN</code>, <code>LOGOUT</code>, <code>EXPORT</code>. Permite filtrar por tipo de evento en reportes.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">entidad</span></td>
+            <td><span class="type-badge">NVARCHAR(100)</span></td>
+            <td>100 chars</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="null-text">—</span></td>
+            <td>—</td>
+            <td>Nombre de la tabla o entidad afectada por la acción (ej: <code>users</code>, <code>proyectos</code>, <code>asignaciones</code>). Permite filtrar el log por entidad específica.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">entidadId</span></td>
+            <td><span class="type-badge">INT</span></td>
+            <td>—</td>
+            <td><span class="dot-yes"></span> SÍ</td>
+            <td><span class="null-text">NULL</span></td>
+            <td>—</td>
+            <td>ID del registro afectado dentro de la entidad indicada. <code>NULL</code> para acciones globales (ej: exportaciones, inicio de sesión).</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">valorAnterior</span></td>
+            <td><span class="type-badge">NVARCHAR(MAX)</span></td>
+            <td>Sin límite</td>
+            <td><span class="dot-yes"></span> SÍ</td>
+            <td><span class="null-text">NULL</span></td>
+            <td>—</td>
+            <td>Snapshot en JSON del estado del registro <em>antes</em> del cambio. <code>NULL</code> en operaciones de creación. Permite comparación diff entre estados.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">valorNuevo</span></td>
+            <td><span class="type-badge">NVARCHAR(MAX)</span></td>
+            <td>Sin límite</td>
+            <td><span class="dot-yes"></span> SÍ</td>
+            <td><span class="null-text">NULL</span></td>
+            <td>—</td>
+            <td>Snapshot en JSON del estado del registro <em>después</em> del cambio. <code>NULL</code> en operaciones de eliminación.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">ipOrigen</span></td>
+            <td><span class="type-badge">NVARCHAR(45)</span></td>
+            <td>45 chars</td>
+            <td><span class="dot-yes"></span> SÍ</td>
+            <td><span class="null-text">NULL</span></td>
+            <td>—</td>
+            <td>Dirección IP desde la que se originó la petición HTTP. 45 caracteres soporta tanto IPv4 (<code>xxx.xxx.xxx.xxx</code>) como IPv6 completo. Extraída del objeto <code>Request</code> en el interceptor.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">userAgent</span></td>
+            <td><span class="type-badge">NVARCHAR(500)</span></td>
+            <td>500 chars</td>
+            <td><span class="dot-yes"></span> SÍ</td>
+            <td><span class="null-text">NULL</span></td>
+            <td>—</td>
+            <td>Cadena User-Agent del cliente que realizó la petición (navegador, sistema operativo, versión). Útil para detectar patrones de acceso inusuales o bots.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">fechaEvento</span></td>
+            <td><span class="type-badge">DATETIME2</span></td>
+            <td>Alta precisión</td>
+            <td><span class="dot-no"></span> NO</td>
+            <td><span class="default-val">GETDATE()</span></td>
+            <td><span class="tag tag-idx">IDX</span> <code>@CreateDateColumn</code></td>
+            <td>Timestamp exacto del evento auditado. Se recomienda indexar esta columna para optimizar consultas de log por rango de fechas en SQL Server.</td>
+          </tr>
+          <tr>
+            <td><span class="col-name">idUsuario</span></td>
+            <td><span class="type-badge">INT</span></td>
+            <td>—</td>
+            <td><span class="dot-yes"></span> SÍ</td>
+            <td><span class="null-text">NULL</span></td>
+            <td><span class="tag tag-fk">FK</span> → users.id</td>
+            <td>Clave foránea al usuario que ejecutó la acción. <code>NULL</code> para operaciones de sistema no atribuibles a un usuario (ej: tareas programadas, migraciones). Relación <code>ManyToOne</code> con <code>User</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- =========================================================
+       GLOSARIO DE TIPOS
+  ========================================================= -->
+  <section class="mt-40">
+    <div class="section-header">
+      <div class="icon">📖</div>
+      <h2>Glosario de Tipos de Datos — SQL Server</h2>
+    </div>
+
+    <div class="glossary-grid">
+      <div class="glossary-card">
+        <div class="gc-title"><code>INT</code> — Entero</div>
+        <div class="gc-body">Número entero de 32 bits. Rango: −2,147,483,648 a 2,147,483,647. Usado en PKs e IDs con <code>IDENTITY(1,1)</code>.</div>
+      </div>
+      <div class="glossary-card">
+        <div class="gc-title"><code>BIGINT</code> — Entero Grande</div>
+        <div class="gc-body">Número entero de 64 bits. Rango: −9.2×10¹⁸ a 9.2×10¹⁸. Recomendado para tablas de alto volumen como logs de auditoría.</div>
+      </div>
+      <div class="glossary-card">
+        <div class="gc-title"><code>NVARCHAR(n)</code> — Texto Unicode</div>
+        <div class="gc-body">Cadena de longitud variable con soporte Unicode completo (UTF-16). Reemplaza a <code>VARCHAR</code> para soportar caracteres como ñ, á, ü, etc.</div>
+      </div>
+      <div class="glossary-card">
+        <div class="gc-title"><code>NVARCHAR(MAX)</code> — Texto Largo</div>
+        <div class="gc-body">Hasta 2 GB de datos de texto Unicode. Reemplaza el tipo <code>TEXT</code> deprecado en SQL Server 2005+. Usado en descripciones y campos JSON.</div>
+      </div>
+      <div class="glossary-card">
+        <div class="gc-title"><code>DECIMAL(18,2)</code> — Monetario</div>
+        <div class="gc-body">Número de punto fijo con 18 dígitos totales y 2 decimales. Estándar del proyecto para cualquier valor monetario (salarios, presupuestos). Sin errores de punto flotante.</div>
+      </div>
+      <div class="glossary-card">
+        <div class="gc-title"><code>DATETIME2</code> — Fecha y Hora</div>
+        <div class="gc-body">Alta precisión (hasta 7 decimales en fracciones de segundo). Reemplaza a <code>DATETIME</code> y <code>TIMESTAMP</code>. Compatible con strings ISO 8601. Requerido por el proyecto.</div>
+      </div>
+      <div class="glossary-card">
+        <div class="gc-title"><code>BIT</code> — Booleano</div>
+        <div class="gc-body">Almacena valores <code>0</code> (false) o <code>1</code> (true). Es el equivalente SQL Server al tipo <code>BOOLEAN</code> de PostgreSQL. Usado en campos como <code>isActive</code>.</div>
+      </div>
+      <div class="glossary-card">
+        <div class="gc-title"><code>IDENTITY(1,1)</code> — Autoincremento</div>
+        <div class="gc-body">Propiedad SQL Server equivalente a <code>AUTO_INCREMENT</code> de MySQL. El primer parámetro es el valor inicial y el segundo el incremento. TypeORM lo aplica con <code>@PrimaryGeneratedColumn('increment')</code>.</div>
+      </div>
+      <div class="glossary-card">
+        <div class="gc-title">Código de Error <code>2627 / 2601</code></div>
+        <div class="gc-body">Violación de restricción <code>UNIQUE</code> en SQL Server. Equivale al código <code>23505</code> de PostgreSQL. El sistema los captura con <code>error.number</code> en <code>handleDBExceptions</code>.</div>
+      </div>
+      <div class="glossary-card">
+        <div class="gc-title">Código de Error <code>547</code></div>
+        <div class="gc-body">Conflicto de clave foránea (<code>REFERENCE constraint</code>) en SQL Server. Se dispara al intentar eliminar un registro padre con hijos referenciados. Capturado para retornar mensajes amigables al cliente.</div>
+      </div>
+      <div class="glossary-card">
+        <div class="gc-title"><code>@AfterLoad</code> — Hook TypeORM</div>
+        <div class="gc-body">Decorador que ejecuta un método automáticamente después de que TypeORM carga una entidad desde la base de datos. Usado para construir URLs completas de imágenes a partir del nombre de archivo guardado.</div>
+      </div>
+      <div class="glossary-card">
+        <div class="gc-title"><code>FK</code> — Foreign Key</div>
+        <div class="gc-body">Restricción de clave foránea. Garantiza la integridad referencial entre tablas. En TypeORM se declara con <code>@ManyToOne</code> + <code>@JoinColumn</code>. La columna generada lleva el nombre definido en <code>name</code>.</div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>INTEGRA ARRENDA — Diccionario de Base de Datos · v1.0 · 2026</span>
+      <span>Documento confidencial · Prohibida su reproducción sin autorización</span>
+    </div>
+  </section>
+
+</div><!-- /content -->
+
+</body>
+</html>
