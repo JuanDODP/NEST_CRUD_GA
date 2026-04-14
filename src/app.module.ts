@@ -128,6 +128,9 @@ import { FilesModule } from './files/files.module';
       autoLoadEntities: true,
       synchronize: true, // Se recomienda usar migraciones en producción
       logging: true,     // Útil para ver las queries en consola durante el desarrollo
+      ssl: {
+    rejectUnauthorized: false,
+  },
     }),
 
     AuthModule,
