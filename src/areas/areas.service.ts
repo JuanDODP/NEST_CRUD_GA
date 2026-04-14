@@ -160,14 +160,20 @@ async update(id: number, updateAreaDto: UpdateAreaDto, file?: Express.Multer.Fil
   }
   // =============================================================================================================================
 
-  private handleDBExceptions(error: any) {
-    // --- CAMBIO PARA SQL SERVER ---
-    // Los códigos 2627 y 2601 son para violaciones de restricción UNIQUE
-    if (error.number === 2627 || error.number === 2601) {
-      throw new BadRequestException(`El área ya existe: ${error.message}`);
-    }
-
-    this.logger.error(error);
-    throw new InternalServerErrorException('Could not process request - Check server logs');
+private handleDBExceptions(error: any) {
+  // --- CAMBIO PARA POSTGRESQL ---
+  // El código '23505' es para violaciones de restricción UNIQUE (Unique Violation)
+  if (error.code === '23505') {
+    throw new BadRequestException(error.detail || 'El registro ya existe en la base de datos');
   }
+
+  // El código '23503' es para violaciones de llave foránea (Foreign Key Violation)
+  // Útil si intentas borrar un área que tiene proyectos asignados o viceversa
+  if (error.code === '23503') {
+    throw new BadRequestException('Operación no permitida: existen registros relacionados');
+  }
+
+  this.logger.error(error);
+  throw new InternalServerErrorException('No se pudo procesar la solicitud - Revisa los logs del servidor');
+}
 }

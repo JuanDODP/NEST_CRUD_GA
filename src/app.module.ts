@@ -1,59 +1,104 @@
+// // import { Module } from '@nestjs/common';
+// // import { AppController } from './app.controller';
+// // import { AppService } from './app.service';
+// // import { ConfigModule } from '@nestjs/config';
+// // import { TypeOrmModule } from '@nestjs/typeorm';
+// // import { AuthModule } from './auth/auth.module';
+// // import { AreasModule } from './areas/areas.module';
+// // import { ProyectosModule } from './proyectos/proyectos.module';
+// // import { AsignacionesModule } from './asignaciones/asignaciones.module';
+
+// // @Module({
+// //   imports: [
+// //     ConfigModule.forRoot(),
+// //     // para postgress
+// //     // TypeOrmModule.forRoot({
+// //     //   type: 'postgres',
+// //     //   host: process.env.DB_HOST,
+// //     //   port: Number(process.env.DB_PORT),
+// //     //   database: process.env.DB_NAME,
+// //     //   username: process.env.DB_USERNAME,
+// //     //   password: process.env.DB_PASSWORD,
+// //     //   autoLoadEntities: true,
+// //     //   synchronize: true,
+// //     //   logging: true,
+// //     // }),
+// //     // ========================================================================================================================================
+// //     // Para sql server
+// //     TypeOrmModule.forRoot({
+// //   type: 'mssql',
+// //   host: process.env.DB_HOST,
+// //   port: Number(process.env.DB_PORT),
+// //   username: process.env.DB_USERNAME,
+// //   password: process.env.DB_PASSWORD,
+// //   database: process.env.DB_NAME,
+// //   entities: [__dirname + '/**/*.entity{.ts,.js}'],
+// //   synchronize: true, // ¡Cuidado! Creará las tablas automáticamente
+// //   extra: {
+// //     options: {
+// //       encrypt: false, // Cambia a true si estás en Azure/Producción
+// //       trustServerCertificate: true, // Vital para Windows local
+// //     },
+// //   },
+// // }),
+// //     // ========================================================================================================================================
+
+// //     AuthModule,
+// //     AreasModule,
+// //     ProyectosModule,
+// //     AsignacionesModule,
+
+// //   ],
+// //   controllers: [AppController],
+// //   providers: [AppService],
+// // })
+// // export class AppModule {}
+// // sql server
 // import { Module } from '@nestjs/common';
-// import { AppController } from './app.controller';
-// import { AppService } from './app.service';
 // import { ConfigModule } from '@nestjs/config';
 // import { TypeOrmModule } from '@nestjs/typeorm';
 // import { AuthModule } from './auth/auth.module';
 // import { AreasModule } from './areas/areas.module';
 // import { ProyectosModule } from './proyectos/proyectos.module';
 // import { AsignacionesModule } from './asignaciones/asignaciones.module';
+// import { AppController } from './app.controller';
+// import { AppService } from './app.service';
+// import { env } from 'process';
+// import { FilesModule } from './files/files.module';
 
 // @Module({
 //   imports: [
 //     ConfigModule.forRoot(),
-//     // para postgress
-//     // TypeOrmModule.forRoot({
-//     //   type: 'postgres',
-//     //   host: process.env.DB_HOST,
-//     //   port: Number(process.env.DB_PORT),
-//     //   database: process.env.DB_NAME,
-//     //   username: process.env.DB_USERNAME,
-//     //   password: process.env.DB_PASSWORD,
-//     //   autoLoadEntities: true,
-//     //   synchronize: true,
-//     //   logging: true,
-//     // }),
-//     // ========================================================================================================================================
-//     // Para sql server
+//     ConfigModule.forRoot({
+//       isGlobal: true, 
+//     }),
 //     TypeOrmModule.forRoot({
-//   type: 'mssql',
-//   host: process.env.DB_HOST,
-//   port: Number(process.env.DB_PORT),
-//   username: process.env.DB_USERNAME,
-//   password: process.env.DB_PASSWORD,
-//   database: process.env.DB_NAME,
-//   entities: [__dirname + '/**/*.entity{.ts,.js}'],
-//   synchronize: true, // ¡Cuidado! Creará las tablas automáticamente
-//   extra: {
-//     options: {
-//       encrypt: false, // Cambia a true si estás en Azure/Producción
-//       trustServerCertificate: true, // Vital para Windows local
-//     },
-//   },
-// }),
-//     // ========================================================================================================================================
+//       type: 'mssql',
+//       host: env.DB_HOST,
+//       port: Number(env.DB_PORT),
+//       username: env.DB_USERNAME,
+//       password: env.DB_PASSWORD,
+//       database: env.DB_NAME,
+//       autoLoadEntities: true,
+//       synchronize: true,
+//       extra: {
+//         options: {
+//           encrypt: false,
+//           trustServerCertificate: true,
+//         },
+//       },
+//     }),
 
 //     AuthModule,
 //     AreasModule,
 //     ProyectosModule,
 //     AsignacionesModule,
-
+//     FilesModule,
 //   ],
 //   controllers: [AppController],
 //   providers: [AppService],
 // })
-// export class AppModule {}
-// sql server
+// export class AppModule { }
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -63,30 +108,26 @@ import { ProyectosModule } from './proyectos/proyectos.module';
 import { AsignacionesModule } from './asignaciones/asignaciones.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { env } from 'process';
 import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    // Configuración global de variables de entorno
     ConfigModule.forRoot({
       isGlobal: true, 
     }),
+
+    // Configuración para PostgreSQL
     TypeOrmModule.forRoot({
-      type: 'mssql',
-      host: env.DB_HOST,
-      port: Number(env.DB_PORT),
-      username: env.DB_USERNAME,
-      password: env.DB_PASSWORD,
-      database: env.DB_NAME,
+      type: 'postgres',
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
       autoLoadEntities: true,
-      synchronize: true,
-      extra: {
-        options: {
-          encrypt: false,
-          trustServerCertificate: true,
-        },
-      },
+      synchronize: true, // Se recomienda usar migraciones en producción
+      logging: true,     // Útil para ver las queries en consola durante el desarrollo
     }),
 
     AuthModule,

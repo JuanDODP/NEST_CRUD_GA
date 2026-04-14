@@ -1,4 +1,30 @@
-// import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, JoinColumn, OneToMany } from "typeorm";
+// // import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, JoinColumn, OneToMany } from "typeorm";
+// // import { Area } from '../../areas/entities/area.entity';
+// // import { Asignacion } from "src/asignaciones/entities/asignacione.entity";
+
+// // @Entity('proyectos')
+// // export class Proyecto {
+// //     @PrimaryGeneratedColumn('increment')
+// //     id: number;
+
+// //     @Column()
+// //     nombreProyecto: string;
+
+// //     @Column({ type: 'date' })
+// //     fechaInicio: string;
+
+// //     @Column({ type: 'date' })
+// //     fechaFin: string;
+
+// //     // Muchos proyectos pertenecen a una sola Área
+// //     @ManyToOne(() => Area, (area) => area.proyectos)
+// //     @JoinColumn({ name: 'areaId' }) // Esto creará la columna areaId en la DB
+// //     area: Area;
+// //     // Un proyecto tiene muchas asignaciones
+// //   @OneToMany(() => Asignacion, (asignacion) => asignacion.proyecto)
+// //   asignaciones: Asignacion[];
+// // }
+// import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, JoinColumn, OneToMany, AfterLoad } from "typeorm";
 // import { Area } from '../../areas/entities/area.entity';
 // import { Asignacion } from "src/asignaciones/entities/asignacione.entity";
 
@@ -7,49 +33,65 @@
 //     @PrimaryGeneratedColumn('increment')
 //     id: number;
 
-//     @Column()
+//     // Usamos nvarchar(255) para el nombre del proyecto
+//     @Column('nvarchar', { length: 255 })
 //     nombreProyecto: string;
 
-//     @Column({ type: 'date' })
+//     // En SQL Server, 'date' funciona, pero 'datetime2' es más preciso 
+//     // y evita errores de conversión de strings ISO a fecha.
+//     @Column({ type: 'datetime2' })
 //     fechaInicio: string;
 
-//     @Column({ type: 'date' })
+//     @Column({ type: 'datetime2' })
 //     fechaFin: string;
 
-//     // Muchos proyectos pertenecen a una sola Área
+//     // Relación ManyToOne: Se mantiene la lógica, TypeORM creará un 
+//     // campo areaId de tipo INT para SQL Server.
+//     @Column('nvarchar', { length: 255, default: 'default-image.png' })
+//     imagen: string;
 //     @ManyToOne(() => Area, (area) => area.proyectos)
-//     @JoinColumn({ name: 'areaId' }) // Esto creará la columna areaId en la DB
+//     @JoinColumn({ name: 'areaId' })
 //     area: Area;
-//     // Un proyecto tiene muchas asignaciones
-//   @OneToMany(() => Asignacion, (asignacion) => asignacion.proyecto)
-//   asignaciones: Asignacion[];
+
+//     @OneToMany(() => Asignacion, (asignacion) => asignacion.proyecto)
+//     asignaciones: Asignacion[];
+
+//     @AfterLoad()
+//     updateImageUrl() {
+//         // Solo si la imagen no es ya una URL completa (para evitar duplicar el host)
+//         if (this.imagen && !this.imagen.startsWith('http')) {
+//             // Nota: Aquí podrías usar una variable de entorno, 
+//             // pero para pruebas rápidas lo dejamos así o usamos el servicio.
+//             this.imagen = `http://localhost:3000/api/files/proyectos/${this.imagen}`;
+//         }
+//     }
 // }
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, JoinColumn, OneToMany, AfterLoad } from "typeorm";
 import { Area } from '../../areas/entities/area.entity';
-import { Asignacion } from "src/asignaciones/entities/asignacione.entity";
+import { Asignacion } from "../../asignaciones/entities/asignacione.entity"; // Ajusta la ruta relativa
 
 @Entity('proyectos')
 export class Proyecto {
     @PrimaryGeneratedColumn('increment')
     id: number;
 
-    // Usamos nvarchar(255) para el nombre del proyecto
-    @Column('nvarchar', { length: 255 })
+    // CAMBIO: 'nvarchar' -> 'varchar'. Postgres maneja UTF-8 nativamente.
+    @Column('varchar', { length: 255 })
     nombreProyecto: string;
 
-    // En SQL Server, 'date' funciona, pero 'datetime2' es más preciso 
-    // y evita errores de conversión de strings ISO a fecha.
-    @Column({ type: 'datetime2' })
+    // CAMBIO: 'datetime2' -> 'timestamp'. 
+    // En Postgres, timestamp es el estándar de precisión para fechas y horas.
+    @Column({ type: 'timestamp' })
     fechaInicio: string;
 
-    @Column({ type: 'datetime2' })
+    @Column({ type: 'timestamp' })
     fechaFin: string;
 
-    // Relación ManyToOne: Se mantiene la lógica, TypeORM creará un 
-    // campo areaId de tipo INT para SQL Server.
-    @Column('nvarchar', { length: 255, default: 'default-image.png' })
+    @Column('varchar', { length: 255, default: 'default-image.png' })
     imagen: string;
-    @ManyToOne(() => Area, (area) => area.proyectos)
+
+    // Relación ManyToOne: TypeORM creará la columna areaId como INTEGER automáticamente.
+    @ManyToOne(() => Area, (area) => area.proyectos, { onDelete: 'SET NULL' })
     @JoinColumn({ name: 'areaId' })
     area: Area;
 
@@ -58,10 +100,7 @@ export class Proyecto {
 
     @AfterLoad()
     updateImageUrl() {
-        // Solo si la imagen no es ya una URL completa (para evitar duplicar el host)
         if (this.imagen && !this.imagen.startsWith('http')) {
-            // Nota: Aquí podrías usar una variable de entorno, 
-            // pero para pruebas rápidas lo dejamos así o usamos el servicio.
             this.imagen = `http://localhost:3000/api/files/proyectos/${this.imagen}`;
         }
     }

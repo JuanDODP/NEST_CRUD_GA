@@ -207,7 +207,7 @@
 //   // ========================
 // }
 
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -223,6 +223,8 @@ import * as fs from 'fs';
 import { join } from 'path';
 @Injectable()
 export class AuthService {
+    private readonly logger = new Logger('AuthService');
+  
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -235,13 +237,16 @@ export class AuthService {
     try {
       const { password, rol, ...userData } = createAuthDto;
 
-      const user = this.userRepository.create({
-        ...userData,
-        // SQL Server: Convertimos el arreglo de roles a string separado por comas
-        rol: Array.isArray(rol) ? rol.join(',') : rol,
-        password: bcrypt.hashSync(password, 10),
-        imagen: file ? file.filename : 'default-avatar-user.jpg' // Si no se sube imagen, asignamos una por defecto
-      });
+const user = this.userRepository.create({
+  ...userData,
+  // 1. Verificamos que 'rol' exista. 
+  // 2. Si es array, lo pasamos tal cual. 
+  // 3. Si es un valor único, lo metemos en un array.
+  // 4. Si es null/undefined, mandamos el default ['user'].
+  rol: rol ? (Array.isArray(rol) ? rol : [rol]) : ['user'],
+  password: bcrypt.hashSync(password, 10),
+  imagen: file ? file.filename : 'default-avatar-user.jpg'
+});
 
       await this.userRepository.save(user);
 
@@ -260,11 +265,14 @@ export class AuthService {
     try {
       const { password, rol, ...userData } = createAuthDto;
 
-      const newUser = this.userRepository.create({
-        ...userData,
-        rol: Array.isArray(rol) ? rol.join(',') : rol,
-        password: bcrypt.hashSync(password, 10),
-      });
+   const newUser = this.userRepository.create({
+  ...userData,
+  // 1. Eliminamos el .join(',') porque Postgres guarda el array nativo.
+  // 2. Agregamos una validación por si 'rol' viene vacío o undefined.
+  // 3. Forzamos el tipo con 'as string[]' para que TS deje de comparar con DeepPartial.
+  rol: (rol ? (Array.isArray(rol) ? rol : [rol]) : ['user']) as string[],
+  password: bcrypt.hashSync(password, 10),
+});
 
       await this.userRepository.save(newUser);
 
@@ -408,15 +416,22 @@ async update(id: number, updateUserDto: UpdateUserDto, file?: Express.Multer.Fil
     return this.jwtService.sign(payload);
   }
 
-  private handleDBErrors(error: any): never {
-    // SQL Server usa códigos numéricos: 2627 (PK/Unique) y 2601 (Index)
-    if (error.number === 2627 || error.number === 2601) {
-      throw new BadRequestException(`El registro ya existe: ${error.message}`);
-    }
-
-    console.error(error);
-    throw new InternalServerErrorException('Error inesperado, revisar logs');
+private handleDBErrors(error: any) {
+  // --- CAMBIO PARA POSTGRESQL ---
+  // El código '23505' es para violaciones de restricción UNIQUE (Unique Violation)
+  if (error.code === '23505') {
+    throw new BadRequestException(error.detail || 'El registro ya existe en la base de datos');
   }
+
+  // El código '23503' es para violaciones de llave foránea (Foreign Key Violation)
+  // Útil si intentas borrar un área que tiene proyectos asignados o viceversa
+  if (error.code === '23503') {
+    throw new BadRequestException('Operación no permitida: existen registros relacionados');
+  }
+
+  this.logger.error(error);
+  throw new InternalServerErrorException('No se pudo procesar la solicitud - Revisa los logs del servidor');
+}
 
   async checkAuthStatus(user: User) {
     const { password: _, ...userRest } = user;
